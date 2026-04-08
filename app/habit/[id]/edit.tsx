@@ -1,45 +1,48 @@
-import { useRouter } from 'expo-router';
+// 08/04/26 Habit edit page created for updating habit details.
+import { eq } from 'drizzle-orm';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useContext, useState } from 'react';
 import { Button, Pressable, Text, TextInput, View } from 'react-native';
 
 import { db } from '@/db/client';
 import { habitsTable } from '@/db/schema';
-import { HabitContext } from './_layout';
+import { Habit, HabitContext } from '../../_layout';
 
-export default function AddHabit() {
+export default function EditHabit() {
+  const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const context = useContext(HabitContext);
+  const habits = context?.habits ?? [];
   const categories = context?.categories ?? [];
+  const habit = habits.find((h: Habit) => h.id === Number(id));
 
-  const [name, setName] = useState('');
-  const [metricType, setMetricType] = useState<'count' | 'minutes'>('count');
-  const [notes, setNotes] = useState('');
-  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+  const [name, setName] = useState(habit?.name ?? '');
+  const [metricType, setMetricType] = useState<'count' | 'minutes'>(
+    habit?.metricType === 'minutes' ? 'minutes' : 'count'
+  );
+  const [notes, setNotes] = useState(habit?.notes ?? '');
+  const [categoryId, setCategoryId] = useState(habit?.categoryId ?? 0);
 
-  const saveHabit = async () => {
-    if (!context) return;
+  if (!context || !habit) return null;
+
+  const saveChanges = async () => {
     const trimmedName = name.trim();
-    const chosenCategoryId = selectedCategoryId ?? categories[0]?.id;
-    if (!trimmedName || !chosenCategoryId) return;
+    if (!trimmedName) return;
 
-    await db.insert(habitsTable).values({
-      name: trimmedName,
-      metricType,
-      notes: notes.trim() || null,
-      categoryId: chosenCategoryId,
-    });
+    await db
+      .update(habitsTable)
+      .set({ name: trimmedName, metricType, notes: notes.trim() || null, categoryId })
+      .where(eq(habitsTable.id, Number(id)));
 
     const rows = await db.select().from(habitsTable);
     context.setHabits(rows);
     router.back();
   };
 
-  if (!context) return null;
-
   return (
     <View style={{ padding: 20 }}>
-      <Text style={{ fontSize: 22, marginBottom: 12 }}>Create Habit</Text>
-      <TextInput placeholder="Habit Name" value={name} onChangeText={setName} />
+      <Text style={{ fontSize: 22, marginBottom: 12 }}>Edit Habit</Text>
+      <TextInput value={name} onChangeText={setName} placeholder="Habit Name" />
 
       <Text style={{ marginTop: 12, marginBottom: 8 }}>Metric Type</Text>
       <View style={{ flexDirection: 'row', gap: 12 }}>
@@ -54,11 +57,11 @@ export default function AddHabit() {
       <Text style={{ marginTop: 12, marginBottom: 8 }}>Category</Text>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
         {categories.map((category) => {
-          const active = (selectedCategoryId ?? categories[0]?.id) === category.id;
+          const active = categoryId === category.id;
           return (
             <Pressable
               key={category.id}
-              onPress={() => setSelectedCategoryId(category.id)}
+              onPress={() => setCategoryId(category.id)}
               style={{
                 borderWidth: 1,
                 borderColor: active ? category.color : '#d1d5db',
@@ -74,12 +77,12 @@ export default function AddHabit() {
       </View>
 
       <TextInput
-        placeholder="Notes (optional)"
         value={notes}
         onChangeText={setNotes}
-        style={{ marginTop: 12 }}
+        placeholder="Notes"
+        style={{ marginTop: 12, marginBottom: 12 }}
       />
-      <Button title="Save Habit" onPress={saveHabit} />
+      <Button title="Save Changes" onPress={saveChanges} />
     </View>
   );
 }

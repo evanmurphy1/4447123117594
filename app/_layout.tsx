@@ -1,41 +1,56 @@
+// 08/04/26: change to habit
 import { Stack } from 'expo-router';
 import { createContext, useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 
 import { db } from '@/db/client';
-import { seedStudentsIfEmpty } from '@/db/seed';
-import { studentsTable } from '@/db/schema';
+import { categoriesTable, habitsTable } from '@/db/schema';
+import { seedHabitsIfEmpty } from '@/db/seed';
 
-export type Student = {
+export type Habit = {
   id: number;
   name: string;
-  major: string;
-  year: string;
-  count: number;
+  categoryId: number;
+  metricType: string;
+  notes: string | null;
 };
 
-type StudentContextType = {
-  students: Student[];
-  setStudents: Dispatch<SetStateAction<Student[]>>;
+export type Category = {
+  id: number;
+  name: string;
+  color: string;
+  icon: string;
 };
 
-export const StudentContext = createContext<StudentContextType | null>(null);
+type HabitContextType = {
+  habits: Habit[];
+  categories: Category[];
+  setHabits: Dispatch<SetStateAction<Habit[]>>;
+  setCategories: Dispatch<SetStateAction<Category[]>>;
+};
+
+export const HabitContext = createContext<HabitContextType | null>(null);
 
 export default function RootLayout() {
-  const [students, setStudents] = useState<Student[]>([]);
+  const [habits, setHabits] = useState<Habit[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
-    const loadStudents = async () => {
-      await seedStudentsIfEmpty();
-      const rows = await db.select().from(studentsTable);
-      setStudents(rows as Student[]);
+    const loadData = async () => {
+      await seedHabitsIfEmpty();
+      const [habitRows, categoryRows] = await Promise.all([
+        db.select().from(habitsTable),
+        db.select().from(categoriesTable),
+      ]);
+      setHabits(habitRows as Habit[]);
+      setCategories(categoryRows as Category[]);
     };
 
-    loadStudents();
+    loadData();
   }, []);
 
   return (
-    <StudentContext.Provider value={{ students, setStudents }}>
+    <HabitContext.Provider value={{ habits, categories, setHabits, setCategories }}>
       <Stack />
-    </StudentContext.Provider>
+    </HabitContext.Provider>
   );
 }

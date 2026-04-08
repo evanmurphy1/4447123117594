@@ -1,0 +1,184 @@
+Assignment Brief
+IS4447 Project
+Stack: React Native, Expo, Drizzle ORM
+Submission: Zipped project + Expo link + short demo video + GitHub Repo Link
+Due: 23/04/2026 at midnight • Individual project
+Overview
+Build a production-style mobile app using React Native (Expo) and Drizzle ORM with SQLite. Students must choose one of three options listed below. The app should allow users to create and manage records, organise them using categories, define measurable targets, and view aggregated insights with simple charts. Emphasis: sound mobile UI design, clean component architecture, effective state management with React hooks, reliable local data persistence using SQLite (via Drizzle), and cross-platform deployment through a working Expo link/QR.
+Learning outcomes assessed
+Articulate and apply mobile application design principles (navigation, layout, state, persistence, feedback).
+Develop, test, deploy and evaluate a mobile application (React Native build).
+Effectively utilise development tools including an IDE (e.g., VS Code) and relevant SDKs (Expo/Android/iOS).
+Evaluate existing mobile platforms and justify framework/library choices in a short reflection.
+Project Options
+Students must select one of the following applications. All options must satisfy the same core requirements and marking criteria.
+Option A: Habit Tracker
+Build a mobile app that allows users to define habits, log habit activity over time, set weekly or monthly targets, and view progress across days and weeks.
+Data model (minimum)
+Primary record: Habit activity log
+Tables:
+habits
+habit_logs(completed or count-based per date/date range)
+categories
+targets
+Common user stories
+As a user, I want to create a habit and assign it to a category so I can organise what I am tracking.
+As a user, I want to log whether I completed a habit (or how many times) on a given day.
+As a user, I want to set weekly or monthly goals for my habits and see how close I am to meeting them.
+As a user, I want to view summaries and streaks so I can understand my consistency over time.
+ 
+Option B: Holiday / Trip Planner
+Build a mobile app that allows users to define a trip and record planned or completed activities within that trip, categorise activities, define measurable targets, and view summaries over time.
+Data model (minimum)
+Primary record: Activity
+Tables:
+trips
+activities
+categories
+targets
+Common user stories
+As a user, I want to create a trip with a start and end date so I can group my holiday activities.
+As a user, I want to add activities to a trip with a date and duration or count.
+As a user, I want to categorise activities (e.g. sightseeing, outdoor) so I can see how my time is distributed.
+As a user, I want to set activity-based targets and view summaries to understand how busy or balanced my trip is.
+ 
+Option C: Job Application Tracker
+Build a mobile app that allows users to record job applications, track application status changes over time, categorise applications, define application volume targets, and view aggregated progress.
+Data model (minimum)
+Primary record: Job application
+Tables:
+applications
+application_status_logs (applied, interviewing, rejected etc)
+categories
+targets
+Common user stories
+As a user, I want to record each job application so I can keep track of where I have applied.
+As a user, I want to update and review the status history of an application over time.
+As a user, I want to categorise applications so I can analyse different types of roles.
+As a user, I want to set weekly or monthly application targets and view progress toward those goals.
+ 
+Common Constraints (All Options)
+Primary records must include adate, a measurable metric, and a category reference.
+All insights and charts must be derived from stored records.
+All data is stored locally using SQLite via Drizzle ORM.
+All options are assessed using the same marking rubric.
+Core requirements (minimum features)
+1.     Records: add, edit, and delete records with a date, primary metric (e.g., duration or count), category (required), and optional notes.
+2.     Categories: create and edit categories with a name and colour/icon; all records must reference a category.
+3.     Targets: define weekly and/or monthly goals (global or per-category); display progress, remaining amount, and clear indication when targets are exceeded or unmet.
+4.     Insights: provide daily/weekly/monthly views and at least one simple chart (bar, pie, or line) to visualise aggregated data.
+5.     Search &amp; filter: filter records by date range, category, and text (where applicable).
+6.     Persistence: local offline storage using SQLite (via Drizzle); include a seed script that populates all core tables with sufficient sample data to demonstrate insights and charts
+7.     UX &amp; accessibility: responsive layout using Flexbox; accessible labels; meaningful empty and error states; presentable colour palette, logo and branding/theme
+8.     Data privacy: local-only by default; no secrets committed to the repository.
+9.     Login: users must be able to register, login, logout and delete their profile.  
+10.  Testing: Implement testing with the following minimum coverage:
+Unit test: Verify that the seed function correctly inserts sample data into all core tables (habits/trips/applications, categories, targets, and logs) without duplication or errors.
+Component test: Validate that a reusable FormField component renders correctly with the provided label and placeholder, and that it properly fires its onChangeText callback when user input is simulated.
+Integration test: Confirm that the main list screen (e.g., habits list, trips list, or applications list) displays the seeded data correctly after database initialization, ensuring the data flows from SQLite through the application state to the rendered UI.
+Advanced features (For top marks)
+Light/Dark Mode Toggle:Implement a theme switcher that allows users to toggle between light and dark modes, with the selected preference persisted locally.
+External API Integration:Integrate one relevant public API and display the fetched data meaningfully within the app, including proper loading and error handling states. (API Key kept secret in an env file.)
+Local Notifications:Implement device-based scheduled reminders related to logging activity or target progress using local notifications (no backend services).
+Streak Tracking:Calculate and display consecutive days or weeks where defined targets are met, based on stored record data.
+Data Export (CSV):Allow users to export their stored records to a CSV file that can be saved or shared locally from the device.
+Deliverables
+GitHub Repository:Public GitHub repository URL showing consistent and meaningful commit history across development.
+Zipped Source Code:ZIP file named IS4447_&lt;studentnumber&gt;_&lt;AppName&gt;.zip matching the final state of the GitHub repository.
+Expo Link / QR Code:Public Expo link that runs successfully in Expo Go on both iOS and Android and remains active for the duration of marking.
+Demo Video (3–5 minutes):Screen recording demonstrating core functionality including CRUD operations, categories, targets, insights (charts), and search/filter features.
+Short Report (2–3 pages):Word or PDF document covering accessibility considerations, UI/colour strategy, architectural decisions, reflection on React Native vs native approaches, what went well, what did not go well, key learnings, limitations, and realistic future improvements.
+ 
+AI Usage Policy
+Declaration Required: Any use of AI must be clearly acknowledged in the submitted report.
+Evidence Required: Students must provide links to relevant AI conversations or prompts used during development.
+Explanation Required: Students must clearly state:
+What the AI tool was used for
+Why it was used
+What modifications or adaptations were made to the generated output
+Understanding Required: Students remain fully responsible for all submitted code.
+Oral Verification: The lecturer reserves the right to select any student and require them to explain parts of their codebase. Inability to clearly explain submitted work may result in reduced marks or further academic review.
+Marks Breakdown (Total: 55 Marks)
+Core Requirements (30 Marks)
+Requirement
+Marks
+Description
+1. Records (CRUD)
+4
+Add, edit, delete records with date, metric, category, notes
+2. Categories
+3
+Create/edit categories with name and colour/icon; records reference categories
+3. Targets
+4
+Weekly/monthly goals; progress display; exceeded/unmet indicators
+4. Insights &amp; Charts
+4
+Daily/weekly/monthly views; at least one bar/pie/line chart
+5. Search &amp; Filter
+3
+Filter by date range, category, and text
+6. Persistence &amp; Seed
+3
+SQLite via Drizzle; seed script populates all tables with sample data
+7. UX &amp; Accessibility
+4
+Flexbox responsive layout; accessible labels; empty/error states; colour palette, logo, branding
+8. Data Privacy
+1
+Local-only storage; no secrets committed
+9. Login System
+2
+Register, login, logout, delete profile
+10. Testing
+2
+One unit test (seed function), one component test (FormField), one integration test (list screen seeded data)
+Advanced Features (10 Marks)
+Feature
+Marks
+Description
+Light/Dark Mode Toggle
+2
+Theme switcher with local persistence
+External API Integration
+2
+Public API integration with loading/error states; API key in env file
+Local Notifications
+2
+Scheduled reminders for logging activity or target progress
+Streak Tracking
+2
+Consecutive days/weeks where targets are met
+Data Export (CSV)
+2
+Export records to CSV file saved/shared locally
+Deliverables (15 Marks)
+Deliverable
+Marks
+Description
+GitHub Repository
+4
+Public repo; consistent, meaningful commit history across development
+Zipped Source Code
+2
+Correctly named ZIP file matching final repo state
+Expo Link / QR Code
+3
+Public Expo link; runs in Expo Go on both iOS and Android; remains active for marking
+Demo Video (3-5 min)
+3
+Screen recording demonstrating all core functionality
+Short Report (2-3 pages)
+3
+Accessibility, UI/colour strategy, architecture, reflection, limitations, improvements
+Total: 55 Marks
+Section
+Marks
+Core Requirements
+30
+Advanced Features
+10
+Deliverables
+15
+Total
+55
