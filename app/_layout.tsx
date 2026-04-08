@@ -1,24 +1,41 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+import { createContext, useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { db } from '@/db/client';
+import { seedStudentsIfEmpty } from '@/db/seed';
+import { studentsTable } from '@/db/schema';
 
-export const unstable_settings = {
-  anchor: '(tabs)',
+export type Student = {
+  id: number;
+  name: string;
+  major: string;
+  year: string;
+  count: number;
 };
 
+type StudentContextType = {
+  students: Student[];
+  setStudents: Dispatch<SetStateAction<Student[]>>;
+};
+
+export const StudentContext = createContext<StudentContextType | null>(null);
+
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  const [students, setStudents] = useState<Student[]>([]);
+
+  useEffect(() => {
+    const loadStudents = async () => {
+      await seedStudentsIfEmpty();
+      const rows = await db.select().from(studentsTable);
+      setStudents(rows as Student[]);
+    };
+
+    loadStudents();
+  }, []);
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <StudentContext.Provider value={{ students, setStudents }}>
+      <Stack />
+    </StudentContext.Provider>
   );
 }
