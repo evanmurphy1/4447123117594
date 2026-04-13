@@ -34,6 +34,12 @@ export default function IndexScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#171717', padding: 20 }}>
       <HomeHeaderNew onAddPress={() => router.push({ pathname: '../add' })} />
+      {/* 11/04/26: Adds quick navigation to management screens. */}
+      <View style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
+        <Button title="Categories" onPress={() => router.push('/categories')} />
+        <Button title="Logs" onPress={() => router.push('/logs')} />
+        <Button title="Targets" onPress={() => router.push('/targets')} />
+      </View>
       <HabitTabsNew filters={FILTERS} activeTab={activeTab} onChange={(tab) => setActiveTab(tab)} />
 
       {isEmpty ? (
