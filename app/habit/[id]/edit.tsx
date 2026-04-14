@@ -2,7 +2,7 @@
 import { eq } from 'drizzle-orm';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useContext, useState } from 'react';
-import { Button, Pressable, Text, TextInput, View } from 'react-native';
+import { Button, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { db } from '@/db/client';
 import { habitsTable } from '@/db/schema';
@@ -40,7 +40,10 @@ export default function EditHabit() {
   };
 
   return (
-    <View style={{ padding: 20 }}>
+    <View style={styles.container}>
+      <Pressable style={styles.backButton} onPress={() => router.back()}>
+        <Text style={styles.backButtonText}>Back</Text>
+      </Pressable>
       <Text style={{ fontSize: 22, marginBottom: 12 }}>Edit Habit</Text>
       <TextInput value={name} onChangeText={setName} placeholder="Habit Name" />
 
@@ -86,3 +89,21 @@ export default function EditHabit() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 20,
+    paddingTop: 40,
+    backgroundColor: '#171717',
+    flex: 1,
+  },
+  backButton: {
+    alignSelf: 'flex-start',
+    marginBottom: 8,
+  },
+  backButtonText: {
+    color: '#3b82f6',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+});

@@ -23,7 +23,7 @@ export default function MonthlyViewNew({ habits }: MonthlyViewNewProps) {
   );
 }
 
-// 09/04/26: Styles monthly section for dark design.
+// 13/04/26: Harmonizes monthly text colors.
 const styles = StyleSheet.create({
   container: {
     gap: 10,
@@ -37,12 +37,12 @@ const styles = StyleSheet.create({
     padding: 14,
   },
   name: {
-    color: '#ffffff',
+    color: '#e5e7eb',
     fontSize: 17,
     fontWeight: '600',
   },
   meta: {
-    color: '#a3a3a3',
+    color: '#9ca3af',
     marginTop: 4,
   },
 });

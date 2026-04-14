@@ -24,14 +24,14 @@ export default function EmptyViewNew({
       <Text style={styles.subtitle}>{subtitle}</Text>
 
       <Pressable onPress={onCreate} style={styles.button}>
-        <Ionicons name="add" size={20} color="#ffffff" />
+        <Ionicons name="add" size={20} color="#e5e7eb" />
         <Text style={styles.buttonText}>{buttonText}</Text>
       </Pressable>
     </View>
   );
 }
 
-// 09/04/26: Styles empty state for dark theme.
+// 13/04/26: Aligns empty state with theme.
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   title: {
-    color: '#ffffff',
+    color: '#e5e7eb',
     fontSize: 24,
     fontWeight: '600',
     marginBottom: 8,
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   buttonText: {
-    color: '#ffffff',
+    color: '#e5e7eb',
     fontSize: 16,
     fontWeight: '500',
   },

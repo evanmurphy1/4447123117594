@@ -23,7 +23,7 @@ export default function WeeklyViewNew({ habits }: WeeklyViewNewProps) {
   );
 }
 
-// 09/04/26: Styles weekly list cards with spacing.
+// 13/04/26: Uses muted tones for consistency.
 const styles = StyleSheet.create({
   container: {
     gap: 10,
@@ -37,12 +37,12 @@ const styles = StyleSheet.create({
     padding: 14,
   },
   name: {
-    color: '#ffffff',
+    color: '#e5e7eb',
     fontSize: 17,
     fontWeight: '600',
   },
   meta: {
-    color: '#a3a3a3',
+    color: '#9ca3af',
     marginTop: 4,
   },
 });

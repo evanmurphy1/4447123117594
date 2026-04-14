@@ -1,5 +1,4 @@
 // 09/04/26: Renders today habits list in cards.
-import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -19,9 +18,6 @@ export default function TodayViewNew({ habits, onHabitPress, onTogglePress }: To
       {habits.map((habit) => (
         <View key={habit.id} style={styles.card}>
           <Pressable style={styles.left} onPress={() => onHabitPress?.(habit)}>
-            <View style={styles.iconWrap}>
-              <Ionicons name="checkmark-done-outline" size={20} color="#ffffff" />
-            </View>
             <View style={styles.textWrap}>
               <Text style={styles.name}>{habit.name}</Text>
               <Text style={styles.meta}>{habit.metricType}</Text>
@@ -29,7 +25,7 @@ export default function TodayViewNew({ habits, onHabitPress, onTogglePress }: To
           </Pressable>
 
           <Pressable style={styles.toggle} onPress={() => onTogglePress?.(habit)}>
-            <Ionicons name="checkmark" size={20} color="#6b7280" />
+            <Text style={styles.toggleText}>Done</Text>
           </Pressable>
         </View>
       ))}
@@ -37,7 +33,7 @@ export default function TodayViewNew({ habits, onHabitPress, onTogglePress }: To
   );
 }
 
-// 09/04/26: Styles today cards for dark theme.
+// 13/04/26: Uses muted text for cards.
 const styles = StyleSheet.create({
   container: {
     gap: 10,
@@ -58,31 +54,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
   },
-  iconWrap: {
-    backgroundColor: '#3f3f46',
-    borderRadius: 12,
-    padding: 10,
-    marginRight: 10,
-  },
   textWrap: {
     flex: 1,
   },
   name: {
-    color: '#ffffff',
+    color: '#e5e7eb',
     fontSize: 17,
     fontWeight: '600',
   },
   meta: {
-    color: '#a3a3a3',
+    color: '#9ca3af',
     marginTop: 2,
     textTransform: 'capitalize',
   },
   toggle: {
-    width: 42,
+    minWidth: 56,
     height: 42,
     borderRadius: 12,
     backgroundColor: '#171717',
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 10,
+  },
+  toggleText: {
+    color: '#9ca3af',
+    fontSize: 12,
+    fontWeight: '600',
   },
 });

@@ -53,4 +53,22 @@ sqlite.execSync(`
   );
 `);
 
+// 14/04/26: Create users table.
+sqlite.execSync(`
+  CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    password TEXT NOT NULL
+  );
+`);
+
+// 14/04/26: Create auth session table.
+sqlite.execSync(`
+  CREATE TABLE IF NOT EXISTS auth_session (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL
+  );
+`);
+
 export const db = drizzle(sqlite);

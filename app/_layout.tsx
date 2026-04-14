@@ -1,9 +1,10 @@
 // 08/04/26: change to habit
+import { eq } from 'drizzle-orm';
 import { Stack } from 'expo-router';
 import { createContext, useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 
 import { db } from '@/db/client';
-import { categoriesTable, habitsTable } from '@/db/schema';
+import { authSessionTable, categoriesTable, habitsTable, usersTable } from '@/db/schema';
 import { seedHabitsIfEmpty } from '@/db/seed';
 
 export type Habit = {
@@ -21,11 +22,20 @@ export type Category = {
   icon: string;
 };
 
+// 14/04/26: Logged user shape.
+export type AppUser = {
+  id: number;
+  name: string;
+  email: string;
+};
+
 type HabitContextType = {
   habits: Habit[];
   categories: Category[];
+  user: AppUser | null;
   setHabits: Dispatch<SetStateAction<Habit[]>>;
   setCategories: Dispatch<SetStateAction<Category[]>>;
+  setUser: Dispatch<SetStateAction<AppUser | null>>;
 };
 
 export const HabitContext = createContext<HabitContextType | null>(null);
@@ -33,24 +43,37 @@ export const HabitContext = createContext<HabitContextType | null>(null);
 export default function RootLayout() {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  // 14/04/26: Track current user.
+  const [user, setUser] = useState<AppUser | null>(null);
 
   useEffect(() => {
     const loadData = async () => {
       await seedHabitsIfEmpty();
-      const [habitRows, categoryRows] = await Promise.all([
+      const [habitRows, categoryRows, sessions] = await Promise.all([
         db.select().from(habitsTable),
         db.select().from(categoriesTable),
+        db.select().from(authSessionTable),
       ]);
       setHabits(habitRows as Habit[]);
       setCategories(categoryRows as Category[]);
+
+      if (sessions.length > 0) {
+        const active = sessions[0];
+        const users = await db.select().from(usersTable).where(eq(usersTable.id, active.userId));
+        const found = users[0];
+        if (found) {
+          setUser({ id: found.id, name: found.name, email: found.email });
+        }
+      }
     };
 
     loadData();
   }, []);
 
   return (
-    <HabitContext.Provider value={{ habits, categories, setHabits, setCategories }}>
-      <Stack />
+    <HabitContext.Provider value={{ habits, categories, user, setHabits, setCategories, setUser }}>
+      {/* 13/04/26: Hide headers for clean layout. */}
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#171717' } }} />
     </HabitContext.Provider>
   );
 }

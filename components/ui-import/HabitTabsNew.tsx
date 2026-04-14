@@ -31,7 +31,7 @@ export default function HabitTabsNew({ filters, activeTab, onChange }: HabitTabs
   );
 }
 
-// 09/04/26: Styles tabs for dark UI theme.
+// 13/04/26: Darker tabs for unified theme.
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
@@ -46,18 +46,18 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   activePill: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#2f2f2f',
   },
   inactivePill: {
-    backgroundColor: '#262626',
+    backgroundColor: '#1f1f1f',
   },
   label: {
     fontWeight: '600',
   },
   activeLabel: {
-    color: '#000000',
+    color: '#e5e7eb',
   },
   inactiveLabel: {
-    color: '#d4d4d8',
+    color: '#9ca3af',
   },
 });

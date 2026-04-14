@@ -39,3 +39,17 @@ export const targetsTable = sqliteTable('targets', {
   categoryId: integer('category_id'),
   habitId: integer('habit_id'),
 });
+
+// 14/04/26: Auth users table.
+export const usersTable = sqliteTable('users', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  name: text('name').notNull(),
+  email: text('email').notNull(),
+  password: text('password').notNull(),
+});
+
+// 14/04/26: Active session table.
+export const authSessionTable = sqliteTable('auth_session', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').notNull(),
+});

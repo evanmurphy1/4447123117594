@@ -19,19 +19,19 @@ export default function HomeHeaderNew({
   return (
     <View style={styles.row}>
       <Pressable onPress={onOpenMenu} style={styles.iconButton}>
-        <Ionicons name="grid-outline" size={22} color="#ffffff" />
+        <Ionicons name="grid-outline" size={22} color="#e5e7eb" />
       </Pressable>
 
       <Text style={styles.title}>{title}</Text>
 
       <Pressable onPress={onAddPress} style={styles.iconButton}>
-        <Ionicons name="add" size={28} color="#ffffff" />
+        <Ionicons name="add" size={28} color="#e5e7eb" />
       </Pressable>
     </View>
   );
 }
 
-// 09/04/26: Applies spacing and text styles.
+// 13/04/26: Applies muted header typography.
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
-    color: '#ffffff',
+    color: '#e5e7eb',
     fontSize: 28,
     fontWeight: '700',
   },

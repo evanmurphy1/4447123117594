@@ -23,7 +23,7 @@ export default function OverallViewNew({ habits }: OverallViewNewProps) {
   );
 }
 
-// 09/04/26: Styles overall cards with neutral palette.
+// 13/04/26: Applies unified neutral text colors.
 const styles = StyleSheet.create({
   container: {
     gap: 10,
@@ -37,12 +37,12 @@ const styles = StyleSheet.create({
     padding: 14,
   },
   name: {
-    color: '#ffffff',
+    color: '#e5e7eb',
     fontSize: 17,
     fontWeight: '600',
   },
   meta: {
-    color: '#a3a3a3',
+    color: '#9ca3af',
     marginTop: 4,
   },
 });

@@ -2,7 +2,7 @@
 import { and, eq } from 'drizzle-orm';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useContext, useMemo, useState } from 'react';
-import { Button, Text, TextInput, View } from 'react-native';
+import { Button, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { db } from '@/db/client';
 import { habitLogsTable, habitsTable, targetsTable } from '@/db/schema';
@@ -64,7 +64,10 @@ export default function HabitDetail() {
   };
 
   return (
-    <View style={{ padding: 20 }}>
+    <View style={styles.container}>
+      <Pressable style={styles.backButton} onPress={() => router.back()}>
+        <Text style={styles.backButtonText}>Back</Text>
+      </Pressable>
       <Text style={{ fontSize: 22 }}>{habit.name}</Text>
       <Text>Category: {category?.name ?? 'Unknown'}</Text>
       <Text>Metric Type: {habit.metricType}</Text>
@@ -99,9 +102,24 @@ export default function HabitDetail() {
       <View style={{ marginTop: 8 }}>
         <Button title="Delete Habit" onPress={deleteHabit} />
       </View>
-      <View style={{ marginTop: 8 }}>
-        <Button title="Back" onPress={() => router.back()} />
-      </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 20,
+    paddingTop: 40,
+    backgroundColor: '#171717',
+    flex: 1,
+  },
+  backButton: {
+    alignSelf: 'flex-start',
+    marginBottom: 8,
+  },
+  backButtonText: {
+    color: '#3b82f6',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+});
