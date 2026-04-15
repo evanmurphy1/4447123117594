@@ -1,6 +1,7 @@
 // 11/04/26: Lists categories with edit actions.
 import { useRouter } from 'expo-router';
-import { useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -14,14 +15,24 @@ export default function CategoriesIndex() {
   const context = useContext(HabitContext);
   const [categories, setCategories] = useState<Category[]>([]);
 
-  useEffect(() => {
-    const load = async () => {
-      const rows = await db.select().from(categoriesTable);
-      setCategories(rows as Category[]);
-      context?.setCategories(rows as Category[]);
-    };
-    load();
-  }, [context]);
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+
+      const load = async () => {
+        const rows = await db.select().from(categoriesTable);
+        if (!active) return;
+        setCategories(rows as Category[]);
+        context?.setCategories(rows as Category[]);
+      };
+
+      load();
+
+      return () => {
+        active = false;
+      };
+    }, [context])
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -43,7 +54,6 @@ export default function CategoriesIndex() {
           >
             <Text style={styles.cardTitle}>{category.name}</Text>
             <Text style={styles.cardMeta}>Color: {category.color}</Text>
-            <Text style={styles.cardMeta}>Icon: {category.icon}</Text>
           </Pressable>
         ))}
       </ScrollView>

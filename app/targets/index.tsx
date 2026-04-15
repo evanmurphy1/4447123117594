@@ -1,7 +1,8 @@
 // 11/04/26: Lists targets with progress summary.
 import { desc } from 'drizzle-orm';
 import { useRouter } from 'expo-router';
-import { useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -25,20 +26,30 @@ export default function TargetsIndex() {
   const [targets, setTargets] = useState<TargetRow[]>([]);
   const [logCounts, setLogCounts] = useState<Record<number, number>>({});
 
-  useEffect(() => {
-    const load = async () => {
-      const rows = await db.select().from(targetsTable).orderBy(desc(targetsTable.id));
-      setTargets(rows as TargetRow[]);
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
 
-      const logs = await db.select().from(habitLogsTable);
-      const counts: Record<number, number> = {};
-      logs.forEach((log) => {
-        counts[log.habitId] = (counts[log.habitId] ?? 0) + log.metricValue;
-      });
-      setLogCounts(counts);
-    };
-    load();
-  }, []);
+      const load = async () => {
+        const rows = await db.select().from(targetsTable).orderBy(desc(targetsTable.id));
+        const logs = await db.select().from(habitLogsTable);
+        if (!active) return;
+        setTargets(rows as TargetRow[]);
+
+        const counts: Record<number, number> = {};
+        logs.forEach((log) => {
+          counts[log.habitId] = (counts[log.habitId] ?? 0) + log.metricValue;
+        });
+        setLogCounts(counts);
+      };
+
+      load();
+
+      return () => {
+        active = false;
+      };
+    }, [])
+  );
 
   const habits = context?.habits ?? [];
   const habitLabel = (habitId: number | null) =>

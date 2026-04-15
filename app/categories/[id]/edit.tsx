@@ -19,7 +19,6 @@ export default function EditCategory() {
 
   const [name, setName] = useState(category?.name ?? '');
   const [color, setColor] = useState(category?.color ?? '');
-  const [icon, setIcon] = useState(category?.icon ?? '');
 
   if (!category) return null;
 
@@ -29,7 +28,7 @@ export default function EditCategory() {
 
     await db
       .update(categoriesTable)
-      .set({ name: trimmed, color: color.trim() || category.color, icon: icon.trim() || category.icon })
+      .set({ name: trimmed, color: color.trim() || category.color })
       .where(eq(categoriesTable.id, Number(id)));
 
     const rows = await db.select().from(categoriesTable);
@@ -54,7 +53,6 @@ export default function EditCategory() {
       <Text style={styles.title}>Edit Category</Text>
       <TextInput style={styles.input} value={name} onChangeText={setName} placeholder="Name" placeholderTextColor="#6b7280" />
       <TextInput style={styles.input} value={color} onChangeText={setColor} placeholder="Color (hex)" placeholderTextColor="#6b7280" />
-      <TextInput style={styles.input} value={icon} onChangeText={setIcon} placeholder="Icon name" placeholderTextColor="#6b7280" />
       {/* 13/04/26: Consistent dark primary action. */}
       <Pressable style={styles.primaryButton} onPress={saveChanges}>
         <Text style={styles.primaryButtonText}>Save Changes</Text>

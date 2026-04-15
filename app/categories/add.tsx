@@ -14,7 +14,6 @@ export default function AddCategory() {
 
   const [name, setName] = useState('');
   const [color, setColor] = useState('#22c55e');
-  const [icon, setIcon] = useState('heart');
 
   const saveCategory = async () => {
     const trimmed = name.trim();
@@ -23,7 +22,7 @@ export default function AddCategory() {
     await db.insert(categoriesTable).values({
       name: trimmed,
       color: color.trim() || '#22c55e',
-      icon: icon.trim() || 'heart',
+      icon: 'tag',
     });
 
     const rows = await db.select().from(categoriesTable);
@@ -39,7 +38,6 @@ export default function AddCategory() {
       <Text style={styles.title}>Add Category</Text>
       <TextInput style={styles.input} placeholder="Name" placeholderTextColor="#6b7280" value={name} onChangeText={setName} />
       <TextInput style={styles.input} placeholder="Color (hex)" placeholderTextColor="#6b7280" value={color} onChangeText={setColor} />
-      <TextInput style={styles.input} placeholder="Icon name" placeholderTextColor="#6b7280" value={icon} onChangeText={setIcon} />
       {/* 13/04/26: Consistent dark primary action. */}
       <Pressable style={styles.primaryButton} onPress={saveCategory}>
         <Text style={styles.primaryButtonText}>Save Category</Text>

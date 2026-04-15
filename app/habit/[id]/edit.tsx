@@ -17,9 +17,6 @@ export default function EditHabit() {
   const habit = habits.find((h: Habit) => h.id === Number(id));
 
   const [name, setName] = useState(habit?.name ?? '');
-  const [metricType, setMetricType] = useState<'count' | 'minutes'>(
-    habit?.metricType === 'minutes' ? 'minutes' : 'count'
-  );
   const [notes, setNotes] = useState(habit?.notes ?? '');
   const [categoryId, setCategoryId] = useState(habit?.categoryId ?? 0);
 
@@ -31,7 +28,7 @@ export default function EditHabit() {
 
     await db
       .update(habitsTable)
-      .set({ name: trimmedName, metricType, notes: notes.trim() || null, categoryId })
+      .set({ name: trimmedName, metricType: 'count', notes: notes.trim() || null, categoryId })
       .where(eq(habitsTable.id, Number(id)));
 
     const rows = await db.select().from(habitsTable);
@@ -46,16 +43,6 @@ export default function EditHabit() {
       </Pressable>
       <Text style={{ fontSize: 22, marginBottom: 12 }}>Edit Habit</Text>
       <TextInput value={name} onChangeText={setName} placeholder="Habit Name" />
-
-      <Text style={{ marginTop: 12, marginBottom: 8 }}>Metric Type</Text>
-      <View style={{ flexDirection: 'row', gap: 12 }}>
-        <Pressable onPress={() => setMetricType('count')}>
-          <Text style={{ color: metricType === 'count' ? '#0a7ea4' : '#111827' }}>Count</Text>
-        </Pressable>
-        <Pressable onPress={() => setMetricType('minutes')}>
-          <Text style={{ color: metricType === 'minutes' ? '#0a7ea4' : '#111827' }}>Minutes</Text>
-        </Pressable>
-      </View>
 
       <Text style={{ marginTop: 12, marginBottom: 8 }}>Category</Text>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>

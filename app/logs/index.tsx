@@ -2,7 +2,8 @@
 // 11/04/26: Lists habit logs with filters.
 import { desc } from 'drizzle-orm';
 import { useRouter } from 'expo-router';
-import { useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -30,13 +31,23 @@ export default function LogsIndex() {
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
 
-  useEffect(() => {
-    const load = async () => {
-      const rows = await db.select().from(habitLogsTable).orderBy(desc(habitLogsTable.logDate));
-      setLogs(rows as HabitLogRow[]);
-    };
-    load();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+
+      const load = async () => {
+        const rows = await db.select().from(habitLogsTable).orderBy(desc(habitLogsTable.logDate));
+        if (!active) return;
+        setLogs(rows as HabitLogRow[]);
+      };
+
+      load();
+
+      return () => {
+        active = false;
+      };
+    }, [])
+  );
 
   const habits = context?.habits ?? [];
   const categories = context?.categories ?? [];

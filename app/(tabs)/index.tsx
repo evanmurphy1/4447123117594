@@ -1,6 +1,8 @@
 //08/04/26 changed for habits
+import { and, eq } from 'drizzle-orm';
+import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
-import { useContext, useState } from 'react';
+import { useCallback, useContext, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -12,16 +14,20 @@ import MonthlyViewNew from '@/components/ui-import/MonthlyViewNew';
 import OverallViewNew from '@/components/ui-import/OverallViewNew';
 import TodayViewNew from '@/components/ui-import/TodayViewNew';
 import WeeklyViewNew from '@/components/ui-import/WeeklyViewNew';
+import { db } from '@/db/client';
+import { habitLogsTable } from '@/db/schema';
 import { Habit, HabitContext } from '../_layout';
 
 // 09/04/26: Defines top filters for habits screen.
 const FILTERS = ['Today', 'Weekly', 'Monthly', 'Overall'] as const;
+const todayIso = () => new Date().toISOString().slice(0, 10);
 
 export default function IndexScreen() {
   const router = useRouter();
   const context = useContext(HabitContext);
   // 09/04/26: Tracks currently selected habits filter tab.
   const [activeTab, setActiveTab] = useState<(typeof FILTERS)[number]>('Today');
+  const [doneHabitIds, setDoneHabitIds] = useState<number[]>([]);
   // 09/04/26: Reads habits safely before context guard.
   const habits = context?.habits ?? [];
   const user = context?.user ?? null;
@@ -29,6 +35,52 @@ export default function IndexScreen() {
   const visibleHabits = habits;
   // 09/04/26: Shows empty state when no habits.
   const isEmpty = visibleHabits.length === 0;
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+
+      const loadDoneHabits = async () => {
+        const rows = await db
+          .select()
+          .from(habitLogsTable)
+          .where(eq(habitLogsTable.logDate, todayIso()));
+        if (!active) return;
+        setDoneHabitIds(rows.map((row) => row.habitId));
+      };
+
+      loadDoneHabits();
+
+      return () => {
+        active = false;
+      };
+    }, [])
+  );
+
+  // 15/04/26: Toggle today completion.
+  const toggleHabitDone = async (habit: Habit) => {
+    const rows = await db
+      .select()
+      .from(habitLogsTable)
+      .where(and(eq(habitLogsTable.habitId, habit.id), eq(habitLogsTable.logDate, todayIso())));
+
+    if (rows.length > 0) {
+      await db
+        .delete(habitLogsTable)
+        .where(and(eq(habitLogsTable.habitId, habit.id), eq(habitLogsTable.logDate, todayIso())));
+      setDoneHabitIds((prev) => prev.filter((id) => id !== habit.id));
+      return;
+    }
+
+    await db.insert(habitLogsTable).values({
+      habitId: habit.id,
+      categoryId: habit.categoryId,
+      logDate: todayIso(),
+      metricValue: 1,
+      notes: 'Done',
+    });
+    setDoneHabitIds((prev) => (prev.includes(habit.id) ? prev : [...prev, habit.id]));
+  };
 
   if (!context) return null;
 
@@ -49,9 +101,20 @@ export default function IndexScreen() {
         <Pressable style={styles.navLink} onPress={() => router.push('/insights')}>
           <Text style={styles.navText}>Insights</Text>
         </Pressable>
-        <Pressable style={styles.navLink} onPress={() => router.push(user ? '/account' : '/auth/login')}>
-          <Text style={styles.navText}>{user ? 'Account' : 'Login'}</Text>
-        </Pressable>
+        {user ? (
+          <Pressable style={styles.navLink} onPress={() => router.push('/account')}>
+            <Text style={styles.navText}>Account</Text>
+          </Pressable>
+        ) : (
+          <>
+            <Pressable style={styles.navLink} onPress={() => router.push('/auth/login')}>
+              <Text style={styles.navText}>Login</Text>
+            </Pressable>
+            <Pressable style={styles.navLink} onPress={() => router.push('/auth/register')}>
+              <Text style={styles.navText}>Register</Text>
+            </Pressable>
+          </>
+        )}
       </View>
       <HabitTabsNew filters={FILTERS} activeTab={activeTab} onChange={(tab) => setActiveTab(tab)} />
 
@@ -67,9 +130,11 @@ export default function IndexScreen() {
             {activeTab === 'Today' ? (
               <TodayViewNew
                 habits={visibleHabits}
+                doneHabitIds={doneHabitIds}
                 onHabitPress={(habit) =>
                   router.push({ pathname: '/habit/[id]', params: { id: habit.id.toString() } })
                 }
+                onTogglePress={toggleHabitDone}
               />
             ) : activeTab === 'Weekly' ? (
               <WeeklyViewNew habits={visibleHabits} />

@@ -7,12 +7,18 @@ import type { Habit } from '@/app/_layout';
 // 09/04/26: Defines props for today view actions.
 type TodayViewNewProps = {
   habits: Habit[];
+  doneHabitIds?: number[];
   onHabitPress?: (habit: Habit) => void;
   onTogglePress?: (habit: Habit) => void;
 };
 
 // 09/04/26: Displays habits with icon and toggle.
-export default function TodayViewNew({ habits, onHabitPress, onTogglePress }: TodayViewNewProps) {
+export default function TodayViewNew({
+  habits,
+  doneHabitIds = [],
+  onHabitPress,
+  onTogglePress,
+}: TodayViewNewProps) {
   return (
     <View style={styles.container}>
       {habits.map((habit) => (
@@ -20,12 +26,15 @@ export default function TodayViewNew({ habits, onHabitPress, onTogglePress }: To
           <Pressable style={styles.left} onPress={() => onHabitPress?.(habit)}>
             <View style={styles.textWrap}>
               <Text style={styles.name}>{habit.name}</Text>
-              <Text style={styles.meta}>{habit.metricType}</Text>
             </View>
           </Pressable>
 
-          <Pressable style={styles.toggle} onPress={() => onTogglePress?.(habit)}>
-            <Text style={styles.toggleText}>Done</Text>
+          <Pressable
+            style={[styles.toggle, doneHabitIds.includes(habit.id) ? styles.toggleActive : null]}
+            onPress={() => onTogglePress?.(habit)}
+          >
+            {/* 15/04/26: Done status label. */}
+            <Text style={styles.toggleText}>{doneHabitIds.includes(habit.id) ? 'Done ✓' : 'Done'}</Text>
           </Pressable>
         </View>
       ))}
@@ -62,11 +71,6 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '600',
   },
-  meta: {
-    color: '#9ca3af',
-    marginTop: 2,
-    textTransform: 'capitalize',
-  },
   toggle: {
     minWidth: 56,
     height: 42,
@@ -75,6 +79,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 10,
+  },
+  toggleActive: {
+    backgroundColor: '#14532d',
+    borderWidth: 1,
+    borderColor: '#22c55e',
   },
   toggleText: {
     color: '#9ca3af',

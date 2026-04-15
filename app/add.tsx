@@ -14,7 +14,6 @@ export default function AddHabit() {
   const categories = context?.categories ?? [];
 
   const [name, setName] = useState('');
-  const [metricType, setMetricType] = useState<'count' | 'minutes'>('count');
   const [notes, setNotes] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [nameError, setNameError] = useState('');
@@ -35,7 +34,7 @@ export default function AddHabit() {
 
     await db.insert(habitsTable).values({
       name: trimmedName,
-      metricType,
+      metricType: 'count',
       notes: notes.trim() || null,
       categoryId: chosenCategoryId,
     });
@@ -63,22 +62,6 @@ export default function AddHabit() {
         }}
         error={nameError}
       />
-
-      <Text style={styles.label}>Metric Type</Text>
-      <View style={styles.row}>
-        <Pressable
-          style={[styles.metricChip, metricType === 'count' ? styles.metricChipActive : null]}
-          onPress={() => setMetricType('count')}
-        >
-          <Text style={styles.chipText}>Count</Text>
-        </Pressable>
-        <Pressable
-          style={[styles.metricChip, metricType === 'minutes' ? styles.metricChipActive : null]}
-          onPress={() => setMetricType('minutes')}
-        >
-          <Text style={styles.chipText}>Minutes</Text>
-        </Pressable>
-      </View>
 
       <Text style={styles.label}>Category</Text>
       <View style={styles.chipRow}>
@@ -134,11 +117,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     color: '#9ca3af',
   },
-  row: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 10,
-  },
   chipRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -153,18 +131,6 @@ const styles = StyleSheet.create({
   },
   chipText: {
     color: '#e5e7eb',
-  },
-  metricChip: {
-    borderWidth: 1,
-    borderColor: '#3f3f46',
-    backgroundColor: '#1f1f1f',
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  metricChipActive: {
-    borderColor: '#4b5563',
-    backgroundColor: '#2f2f2f',
   },
   errorText: {
     color: '#fca5a5',

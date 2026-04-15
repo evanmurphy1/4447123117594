@@ -6,22 +6,16 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 // 09/04/26: Defines callbacks for header buttons.
 type HomeHeaderNewProps = {
   title?: string;
-  onOpenMenu?: () => void;
   onAddPress?: () => void;
 };
 
 // 09/04/26: Shows menu, title, and add button.
 export default function HomeHeaderNew({
   title = 'Habits',
-  onOpenMenu,
   onAddPress,
 }: HomeHeaderNewProps) {
   return (
     <View style={styles.row}>
-      <Pressable onPress={onOpenMenu} style={styles.iconButton}>
-        <Ionicons name="grid-outline" size={22} color="#e5e7eb" />
-      </Pressable>
-
       <Text style={styles.title}>{title}</Text>
 
       <Pressable onPress={onAddPress} style={styles.iconButton}>

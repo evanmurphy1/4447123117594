@@ -18,7 +18,6 @@ export default function HabitCard({ habit }: Props) {
       >
         {habit.name}
       </Text>
-      <Text>Metric: {habit.metricType}</Text>
       <Text>Notes: {habit.notes || 'No notes'}</Text>
       <Button
         title="View"

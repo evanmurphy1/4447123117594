@@ -70,7 +70,6 @@ export default function HabitDetail() {
       </Pressable>
       <Text style={{ fontSize: 22 }}>{habit.name}</Text>
       <Text>Category: {category?.name ?? 'Unknown'}</Text>
-      <Text>Metric Type: {habit.metricType}</Text>
       <Text style={{ marginBottom: 10 }}>Notes: {habit.notes || 'No notes'}</Text>
 
       <Text style={{ fontWeight: '600' }}>Log Today ({todayIso()})</Text>
@@ -78,7 +77,7 @@ export default function HabitDetail() {
         value={metricValue}
         onChangeText={setMetricValue}
         keyboardType="numeric"
-        placeholder={habit.metricType === 'minutes' ? 'Minutes' : 'Count'}
+        placeholder="Count"
       />
       <TextInput
         value={logNote}

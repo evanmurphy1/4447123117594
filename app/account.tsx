@@ -1,7 +1,8 @@
 // 14/04/26: Account actions screen.
 import { eq } from 'drizzle-orm';
 import { useRouter } from 'expo-router';
-import { useContext } from 'react';
+import { useCallback, useContext } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { HabitContext } from '@/app/_layout';
@@ -12,6 +13,30 @@ export default function AccountScreen() {
   const router = useRouter();
   const context = useContext(HabitContext);
   const user = context?.user ?? null;
+
+  useFocusEffect(
+    useCallback(() => {
+      const syncUser = async () => {
+        if (!context) return;
+        const sessions = await db.select().from(authSessionTable);
+        if (sessions.length === 0) {
+          context.setUser(null);
+          return;
+        }
+        const active = sessions[0];
+        const rows = await db.select().from(usersTable).where(eq(usersTable.id, active.userId));
+        const found = rows[0];
+        if (!found) {
+          await db.delete(authSessionTable);
+          context.setUser(null);
+          return;
+        }
+        context.setUser({ id: found.id, name: found.name, email: found.email });
+      };
+
+      syncUser();
+    }, [context])
+  );
 
   const logout = async () => {
     if (!context) return;
@@ -54,9 +79,14 @@ export default function AccountScreen() {
           </Pressable>
         </>
       ) : (
-        <Pressable style={styles.primaryButton} onPress={() => router.push('/auth/login')}>
-          <Text style={styles.primaryButtonText}>Login</Text>
-        </Pressable>
+        <>
+          <Pressable style={styles.primaryButton} onPress={() => router.push('/auth/login')}>
+            <Text style={styles.primaryButtonText}>Login</Text>
+          </Pressable>
+          <Pressable style={styles.primaryButton} onPress={() => router.push('/auth/register')}>
+            <Text style={styles.primaryButtonText}>Register</Text>
+          </Pressable>
+        </>
       )}
     </View>
   );

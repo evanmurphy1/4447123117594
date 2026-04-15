@@ -42,13 +42,13 @@ export async function seedHabitsIfEmpty() {
     {
       name: 'Study React Native',
       categoryId: study.id,
-      metricType: 'minutes',
+      metricType: 'count',
       notes: 'Lecture + practice',
     },
     {
       name: 'Meditation',
       categoryId: mindset.id,
-      metricType: 'minutes',
+      metricType: 'count',
       notes: 'Morning routine',
     },
   ]);
