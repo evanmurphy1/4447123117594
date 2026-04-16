@@ -4,19 +4,56 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import type { Habit } from '@/app/_layout';
 
+type HabitLogRow = {
+  id: number;
+  habitId: number;
+  categoryId: number;
+  logDate: string;
+  metricValue: number;
+  notes: string | null;
+};
+
 // 09/04/26: Defines props for weekly view component.
 type WeeklyViewNewProps = {
   habits: Habit[];
+  logs: HabitLogRow[];
 };
 
-// 09/04/26: Displays weekly placeholder metrics per habit.
-export default function WeeklyViewNew({ habits }: WeeklyViewNewProps) {
+const toIsoDate = (date: Date) => date.toISOString().slice(0, 10);
+
+// 16/04/26: Current week range.
+const getWeekRange = () => {
+  const today = new Date();
+  const mondayOffset = (today.getDay() + 6) % 7;
+  const weekStart = new Date(today);
+  weekStart.setDate(today.getDate() - mondayOffset);
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 6);
+  return { start: toIsoDate(weekStart), end: toIsoDate(weekEnd) };
+};
+
+// 16/04/26: Weekly counts from logs.
+export default function WeeklyViewNew({ habits, logs }: WeeklyViewNewProps) {
+  const { start, end } = getWeekRange();
+
+  // 16/04/26: Weekly total metric sum.
+  const totalThisWeek = (habitId: number) => {
+    let total = 0;
+    logs.forEach((log) => {
+      if (log.habitId !== habitId) return;
+      if (log.metricValue <= 0) return;
+      if (log.logDate < start || log.logDate > end) return;
+      total += log.metricValue;
+    });
+    return total;
+  };
+
   return (
     <View style={styles.container}>
       {habits.map((habit) => (
         <View key={habit.id} style={styles.card}>
           <Text style={styles.name}>{habit.name}</Text>
-          <Text style={styles.meta}>This week: 0 / 7 tracked</Text>
+          <Text style={styles.meta}>This week: {totalThisWeek(habit.id)} total</Text>
         </View>
       ))}
     </View>
@@ -30,19 +67,19 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   card: {
-    backgroundColor: '#262626',
-    borderColor: '#3f3f46',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderColor: 'rgba(255,255,255,0.22)',
     borderWidth: 1,
     borderRadius: 16,
     padding: 14,
   },
   name: {
-    color: '#e5e7eb',
+    color: '#f8fafc',
     fontSize: 17,
     fontWeight: '600',
   },
   meta: {
-    color: '#9ca3af',
+    color: '#cbd5e1',
     marginTop: 4,
   },
 });

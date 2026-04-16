@@ -31,40 +31,66 @@ export default function AddCategory() {
   };
 
   return (
-    <View style={styles.container}>
-      <Pressable style={styles.backButton} onPress={() => router.back()}>
-        <Text style={styles.backButtonText}>Back</Text>
-      </Pressable>
-      <Text style={styles.title}>Add Category</Text>
-      <TextInput style={styles.input} placeholder="Name" placeholderTextColor="#6b7280" value={name} onChangeText={setName} />
-      <TextInput style={styles.input} placeholder="Color (hex)" placeholderTextColor="#6b7280" value={color} onChangeText={setColor} />
-      {/* 13/04/26: Consistent dark primary action. */}
-      <Pressable style={styles.primaryButton} onPress={saveCategory}>
-        <Text style={styles.primaryButtonText}>Save Category</Text>
-      </Pressable>
+    <View style={styles.screen}>
+      {/* 16/04/26: Layered backdrop style. */}
+      <View style={styles.bgWash} />
+      <View style={styles.bgStripe} />
+      <View style={styles.container}>
+        <Pressable style={styles.backButton} onPress={() => router.back()}>
+          <Text style={styles.backButtonText}>Back</Text>
+        </Pressable>
+        <Text style={styles.title}>Add Category</Text>
+        <TextInput style={styles.input} placeholder="Name" placeholderTextColor="#cbd5e1" value={name} onChangeText={setName} />
+        <TextInput style={styles.input} placeholder="Color (hex)" placeholderTextColor="#cbd5e1" value={color} onChangeText={setColor} />
+        {/* 13/04/26: Consistent dark primary action. */}
+        <Pressable style={styles.primaryButton} onPress={saveCategory}>
+          <Text style={styles.primaryButtonText}>Save Category</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
 
 // 13/04/26: Dark themed styles for forms.
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: '#0b1224',
+  },
   container: {
     padding: 20,
     paddingTop: 40,
-    backgroundColor: '#171717',
+    backgroundColor: 'transparent',
     flex: 1,
+  },
+  bgWash: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(30, 41, 59, 0.25)',
+  },
+  bgStripe: {
+    position: 'absolute',
+    width: 540,
+    height: 220,
+    backgroundColor: 'rgba(125, 211, 252, 0.14)',
+    top: 20,
+    right: -150,
+    transform: [{ rotate: '-16deg' }],
   },
   title: {
     fontSize: 22,
     marginBottom: 10,
-    color: '#3b82f6',
+    color: '#f8fafc',
     fontWeight: '600',
   },
   input: {
     borderWidth: 1,
-    borderColor: '#3f3f46',
-    backgroundColor: '#262626',
-    color: '#e5e7eb',
+    borderColor: 'rgba(255,255,255,0.24)',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    color: '#f8fafc',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 10,
@@ -72,8 +98,8 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     alignSelf: 'flex-start',
-    backgroundColor: '#1f1f1f',
-    borderColor: '#3f3f46',
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderColor: 'rgba(255,255,255,0.34)',
     borderWidth: 1,
     borderRadius: 999,
     paddingHorizontal: 16,
@@ -81,17 +107,23 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   primaryButtonText: {
-    color: '#e5e7eb',
+    color: '#f8fafc',
     fontSize: 15,
     fontWeight: '600',
   },
   backButton: {
     alignSelf: 'flex-start',
     marginBottom: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
   backButtonText: {
-    color: '#3b82f6',
-    fontSize: 15,
+    color: '#f8fafc',
+    fontSize: 14,
     fontWeight: '600',
   },
 });

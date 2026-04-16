@@ -66,89 +66,115 @@ export default function LogsIndex() {
   });
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Pressable style={styles.backButton} onPress={() => router.back()}>
-        <Text style={styles.backButtonText}>Back</Text>
-      </Pressable>
-      <Text style={styles.title}>Logs</Text>
-      {/* 13/04/26: Consistent dark primary action. */}
-      <Pressable style={styles.primaryButton} onPress={() => router.push('/logs/add')}>
-        <Text style={styles.primaryButtonText}>Add Log</Text>
-      </Pressable>
-      <View style={styles.filterBox}>
-        <TextInput
-          style={styles.input}
-          placeholder="Search habit/category/notes"
-          placeholderTextColor="#6b7280"
-          value={query}
-          onChangeText={setQuery}
-        />
-        <View style={styles.chipRow}>
-          <Pressable
-            style={[styles.chip, selectedCategoryId === null ? styles.chipActive : null]}
-            onPress={() => setSelectedCategoryId(null)}
-          >
-            <Text style={styles.chipText}>All</Text>
-          </Pressable>
-          {categories.map((category) => (
+    <View style={styles.screen}>
+      {/* 16/04/26: Layered backdrop style. */}
+      <View style={styles.bgWash} />
+      <View style={styles.bgStripe} />
+      <SafeAreaView style={styles.container}>
+        <Pressable style={styles.backButton} onPress={() => router.back()}>
+          <Text style={styles.backButtonText}>Back</Text>
+        </Pressable>
+        <Text style={styles.title}>Logs</Text>
+        {/* 13/04/26: Consistent dark primary action. */}
+        <Pressable style={styles.primaryButton} onPress={() => router.push('/logs/add')}>
+          <Text style={styles.primaryButtonText}>Add Log</Text>
+        </Pressable>
+        <View style={styles.filterBox}>
+          <TextInput
+            style={styles.input}
+            placeholder="Search habit/category/notes"
+            placeholderTextColor="#cbd5e1"
+            value={query}
+            onChangeText={setQuery}
+          />
+          <View style={styles.chipRow}>
             <Pressable
-              key={category.id}
-              style={[styles.chip, selectedCategoryId === category.id ? styles.chipActive : null]}
-              onPress={() => setSelectedCategoryId(category.id)}
+              style={[styles.chip, selectedCategoryId === null ? styles.chipActive : null]}
+              onPress={() => setSelectedCategoryId(null)}
             >
-              <Text style={styles.chipText}>{category.name}</Text>
+              <Text style={styles.chipText}>All</Text>
+            </Pressable>
+            {categories.map((category) => (
+              <Pressable
+                key={category.id}
+                style={[styles.chip, selectedCategoryId === category.id ? styles.chipActive : null]}
+                onPress={() => setSelectedCategoryId(category.id)}
+              >
+                <Text style={styles.chipText}>{category.name}</Text>
+              </Pressable>
+            ))}
+          </View>
+          <View style={styles.row}>
+            <TextInput
+              style={[styles.input, styles.halfInput]}
+              placeholder="From YYYY-MM-DD"
+              placeholderTextColor="#cbd5e1"
+              value={fromDate}
+              onChangeText={setFromDate}
+            />
+            <TextInput
+              style={[styles.input, styles.halfInput]}
+              placeholder="To YYYY-MM-DD"
+              placeholderTextColor="#cbd5e1"
+              value={toDate}
+              onChangeText={setToDate}
+            />
+          </View>
+        </View>
+        {/* 14/04/26: Scroll long log entries. */}
+        <ScrollView style={styles.list} contentContainerStyle={{ paddingBottom: 120 }}>
+          {filteredLogs.map((log) => (
+            <Pressable
+              key={log.id}
+              onPress={() => router.push({ pathname: '/logs/[id]/edit', params: { id: log.id.toString() } })}
+              style={styles.card}
+            >
+              <Text style={styles.cardTitle}>{habitLabel(log.habitId)}</Text>
+              <Text style={styles.cardMeta}>Category: {categoryLabel(log.categoryId)}</Text>
+              <Text style={styles.cardMeta}>Date: {log.logDate}</Text>
+              <Text style={styles.cardMeta}>Metric: {log.metricValue}</Text>
+              <Text style={styles.cardMeta}>Notes: {log.notes || 'None'}</Text>
             </Pressable>
           ))}
-        </View>
-        <View style={styles.row}>
-          <TextInput
-            style={[styles.input, styles.halfInput]}
-            placeholder="From YYYY-MM-DD"
-            placeholderTextColor="#6b7280"
-            value={fromDate}
-            onChangeText={setFromDate}
-          />
-          <TextInput
-            style={[styles.input, styles.halfInput]}
-            placeholder="To YYYY-MM-DD"
-            placeholderTextColor="#6b7280"
-            value={toDate}
-            onChangeText={setToDate}
-          />
-        </View>
-      </View>
-      {/* 14/04/26: Scroll long log entries. */}
-      <ScrollView style={styles.list} contentContainerStyle={{ paddingBottom: 120 }}>
-        {filteredLogs.map((log) => (
-          <Pressable
-            key={log.id}
-            onPress={() => router.push({ pathname: '/logs/[id]/edit', params: { id: log.id.toString() } })}
-            style={styles.card}
-          >
-            <Text style={styles.cardTitle}>{habitLabel(log.habitId)}</Text>
-            <Text style={styles.cardMeta}>Category: {categoryLabel(log.categoryId)}</Text>
-            <Text style={styles.cardMeta}>Date: {log.logDate}</Text>
-            <Text style={styles.cardMeta}>Metric: {log.metricValue}</Text>
-            <Text style={styles.cardMeta}>Notes: {log.notes || 'None'}</Text>
-          </Pressable>
-        ))}
-      </ScrollView>
-    </SafeAreaView>
+        </ScrollView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 // 13/04/26: Dark themed styles for logs.
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: '#090f1f',
+  },
   container: {
     flex: 1,
     padding: 20,
     paddingTop: 40,
-    backgroundColor: '#171717',
+    backgroundColor: 'transparent',
+  },
+  bgWash: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(30, 41, 59, 0.25)',
+  },
+  bgStripe: {
+    position: 'absolute',
+    width: 560,
+    height: 220,
+    backgroundColor: 'rgba(56, 189, 248, 0.16)',
+    top: 30,
+    right: -150,
+    transform: [{ rotate: '-16deg' }],
   },
   title: {
     fontSize: 22,
     marginBottom: 10,
-    color: '#3b82f6',
+    color: '#f8fafc',
     fontWeight: '600',
   },
   list: {
@@ -158,16 +184,16 @@ const styles = StyleSheet.create({
   filterBox: {
     marginTop: 12,
     borderWidth: 1,
-    borderColor: '#3f3f46',
-    backgroundColor: '#1f1f1f',
+    borderColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(255,255,255,0.08)',
     borderRadius: 12,
     padding: 10,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#3f3f46',
-    backgroundColor: '#262626',
-    color: '#e5e7eb',
+    borderColor: 'rgba(255,255,255,0.24)',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    color: '#f8fafc',
     paddingHorizontal: 10,
     paddingVertical: 8,
     borderRadius: 8,
@@ -189,57 +215,63 @@ const styles = StyleSheet.create({
   },
   chip: {
     borderWidth: 1,
-    borderColor: '#3f3f46',
+    borderColor: 'rgba(255,255,255,0.22)',
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 6,
-    backgroundColor: '#262626',
+    backgroundColor: 'rgba(255,255,255,0.1)',
   },
   chipActive: {
-    backgroundColor: '#2f2f2f',
-    borderColor: '#4b5563',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderColor: 'rgba(255,255,255,0.34)',
   },
   chipText: {
-    color: '#e5e7eb',
+    color: '#f8fafc',
     fontSize: 13,
   },
   card: {
     borderWidth: 1,
-    borderColor: '#3f3f46',
+    borderColor: 'rgba(255,255,255,0.2)',
     padding: 12,
     borderRadius: 12,
-    backgroundColor: '#262626',
+    backgroundColor: 'rgba(255,255,255,0.08)',
   },
   cardTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#e5e7eb',
+    color: '#f8fafc',
   },
   cardMeta: {
-    color: '#9ca3af',
+    color: '#cbd5e1',
     marginTop: 2,
   },
   primaryButton: {
     alignSelf: 'flex-start',
-    backgroundColor: '#1f1f1f',
-    borderColor: '#3f3f46',
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderColor: 'rgba(255,255,255,0.32)',
     borderWidth: 1,
     borderRadius: 999,
     paddingHorizontal: 16,
     paddingVertical: 8,
   },
   primaryButtonText: {
-    color: '#e5e7eb',
+    color: '#f8fafc',
     fontSize: 15,
     fontWeight: '600',
   },
   backButton: {
     alignSelf: 'flex-start',
     marginBottom: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
   backButtonText: {
-    color: '#3b82f6',
-    fontSize: 15,
+    color: '#f8fafc',
+    fontSize: 14,
     fontWeight: '600',
   },
 });

@@ -54,66 +54,92 @@ export default function AccountScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Pressable style={styles.backButton} onPress={() => router.back()}>
-        <Text style={styles.backButtonText}>Back</Text>
-      </Pressable>
-      <Text style={styles.title}>Account</Text>
-      {user ? (
-        <>
-          <Text style={styles.meta}>Name: {user.name}</Text>
-          <Text style={styles.meta}>Email: {user.email}</Text>
-          <Pressable style={styles.primaryButton} onPress={logout}>
-            <Text style={styles.primaryButtonText}>Logout</Text>
-          </Pressable>
-          <Pressable
-            style={styles.dangerButton}
-            onPress={() =>
-              Alert.alert('Delete profile?', 'This cannot be undone.', [
-                { text: 'Cancel', style: 'cancel' },
-                { text: 'Delete', style: 'destructive', onPress: deleteProfile },
-              ])
-            }
-          >
-            <Text style={styles.dangerButtonText}>Delete Profile</Text>
-          </Pressable>
-        </>
-      ) : (
-        <>
-          <Pressable style={styles.primaryButton} onPress={() => router.push('/auth/login')}>
-            <Text style={styles.primaryButtonText}>Login</Text>
-          </Pressable>
-          <Pressable style={styles.primaryButton} onPress={() => router.push('/auth/register')}>
-            <Text style={styles.primaryButtonText}>Register</Text>
-          </Pressable>
-        </>
-      )}
+    <View style={styles.screen}>
+      {/* 16/04/26: Layered backdrop style. */}
+      <View style={styles.bgWash} />
+      <View style={styles.bgStripe} />
+      <View style={styles.container}>
+        <Pressable style={styles.backButton} onPress={() => router.back()}>
+          <Text style={styles.backButtonText}>Back</Text>
+        </Pressable>
+        <Text style={styles.title}>Account</Text>
+        {user ? (
+          <>
+            <Text style={styles.meta}>Name: {user.name}</Text>
+            <Text style={styles.meta}>Email: {user.email}</Text>
+            <Pressable style={styles.primaryButton} onPress={logout}>
+              <Text style={styles.primaryButtonText}>Logout</Text>
+            </Pressable>
+            <Pressable
+              style={styles.dangerButton}
+              onPress={() =>
+                Alert.alert('Delete profile?', 'This cannot be undone.', [
+                  { text: 'Cancel', style: 'cancel' },
+                  { text: 'Delete', style: 'destructive', onPress: deleteProfile },
+                ])
+              }
+            >
+              <Text style={styles.dangerButtonText}>Delete Profile</Text>
+            </Pressable>
+          </>
+        ) : (
+          <>
+            <Pressable style={styles.primaryButton} onPress={() => router.push('/auth/login')}>
+              <Text style={styles.primaryButtonText}>Login</Text>
+            </Pressable>
+            <Pressable style={styles.primaryButton} onPress={() => router.push('/auth/register')}>
+              <Text style={styles.primaryButtonText}>Register</Text>
+            </Pressable>
+          </>
+        )}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: '#0b1224',
+  },
   container: {
     flex: 1,
     padding: 20,
     paddingTop: 40,
-    backgroundColor: '#171717',
+    backgroundColor: 'transparent',
+  },
+  bgWash: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(30, 41, 59, 0.25)',
+  },
+  bgStripe: {
+    position: 'absolute',
+    width: 540,
+    height: 220,
+    backgroundColor: 'rgba(125, 211, 252, 0.14)',
+    top: 40,
+    right: -150,
+    transform: [{ rotate: '-16deg' }],
   },
   title: {
     fontSize: 22,
     marginBottom: 12,
-    color: '#3b82f6',
+    color: '#f8fafc',
     fontWeight: '600',
   },
   meta: {
-    color: '#e5e7eb',
+    color: '#e2e8f0',
     marginBottom: 6,
     fontSize: 15,
   },
   primaryButton: {
     alignSelf: 'flex-start',
-    backgroundColor: '#1f1f1f',
-    borderColor: '#3f3f46',
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderColor: 'rgba(255,255,255,0.32)',
     borderWidth: 1,
     borderRadius: 999,
     paddingHorizontal: 16,
@@ -121,14 +147,14 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   primaryButtonText: {
-    color: '#e5e7eb',
+    color: '#f8fafc',
     fontSize: 15,
     fontWeight: '600',
   },
   dangerButton: {
     alignSelf: 'flex-start',
-    backgroundColor: '#3f1f1f',
-    borderColor: '#7f1d1d',
+    backgroundColor: 'rgba(127, 29, 29, 0.35)',
+    borderColor: 'rgba(254, 202, 202, 0.5)',
     borderWidth: 1,
     borderRadius: 999,
     paddingHorizontal: 16,
@@ -143,10 +169,16 @@ const styles = StyleSheet.create({
   backButton: {
     alignSelf: 'flex-start',
     marginBottom: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
   backButtonText: {
-    color: '#3b82f6',
-    fontSize: 15,
+    color: '#f8fafc',
+    fontSize: 14,
     fontWeight: '600',
   },
 });

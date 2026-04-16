@@ -3,7 +3,7 @@ import { desc } from 'drizzle-orm';
 import { useRouter } from 'expo-router';
 import { useCallback, useContext, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { db } from '@/db/client';
@@ -19,12 +19,47 @@ type TargetRow = {
   habitId: number | null;
 };
 
+type HabitLogRow = {
+  id: number;
+  habitId: number;
+  categoryId: number;
+  logDate: string;
+  metricValue: number;
+  notes: string | null;
+};
+
+const toIsoDate = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+// 16/04/26: Current week range.
+const getWeekRange = () => {
+  const today = new Date();
+  const mondayOffset = (today.getDay() + 6) % 7;
+  const start = new Date(today);
+  start.setDate(today.getDate() - mondayOffset);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  return { start: toIsoDate(start), end: toIsoDate(end) };
+};
+
+// 16/04/26: Current month key.
+const getMonthKey = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  return `${year}-${month}`;
+};
+
 // 11/04/26: Renders targets list screen.
 export default function TargetsIndex() {
   const router = useRouter();
   const context = useContext(HabitContext);
   const [targets, setTargets] = useState<TargetRow[]>([]);
-  const [logCounts, setLogCounts] = useState<Record<number, number>>({});
+  const [logs, setLogs] = useState<HabitLogRow[]>([]);
 
   useFocusEffect(
     useCallback(() => {
@@ -32,15 +67,10 @@ export default function TargetsIndex() {
 
       const load = async () => {
         const rows = await db.select().from(targetsTable).orderBy(desc(targetsTable.id));
-        const logs = await db.select().from(habitLogsTable);
+        const logRows = await db.select().from(habitLogsTable);
         if (!active) return;
         setTargets(rows as TargetRow[]);
-
-        const counts: Record<number, number> = {};
-        logs.forEach((log) => {
-          counts[log.habitId] = (counts[log.habitId] ?? 0) + log.metricValue;
-        });
-        setLogCounts(counts);
+        setLogs(logRows as HabitLogRow[]);
       };
 
       load();
@@ -55,50 +85,111 @@ export default function TargetsIndex() {
   const habitLabel = (habitId: number | null) =>
     habits.find((h: Habit) => h.id === habitId)?.name ?? 'All habits';
 
+  // 16/04/26: Progress by target period.
+  const progressForTarget = (target: TargetRow) => {
+    const week = getWeekRange();
+    const monthKey = getMonthKey();
+
+    return logs
+      .filter((log) => {
+        if (target.habitId !== null && log.habitId !== target.habitId) return false;
+        if (target.categoryId !== null && log.categoryId !== target.categoryId) return false;
+        if (target.periodType === 'weekly') {
+          return log.logDate >= week.start && log.logDate <= week.end;
+        }
+        if (target.periodType === 'monthly') {
+          return log.logDate.startsWith(monthKey);
+        }
+        return true;
+      })
+      .reduce((sum, log) => sum + Math.max(0, log.metricValue), 0);
+  };
+
+  // 16/04/26: Status text from progress.
+  const statusFor = (current: number, targetValue: number) => {
+    if (current > targetValue) return 'Exceeded';
+    if (current === targetValue) return 'Met';
+    return 'Unmet';
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <Pressable style={styles.backButton} onPress={() => router.back()}>
-        <Text style={styles.backButtonText}>Back</Text>
-      </Pressable>
-      <Text style={styles.title}>Targets</Text>
-      {/* 13/04/26: Consistent dark primary action. */}
-      <Pressable style={styles.primaryButton} onPress={() => router.push('/targets/add')}>
-        <Text style={styles.primaryButtonText}>Add Target</Text>
-      </Pressable>
-      {/* 14/04/26: Scroll long target entries. */}
-      <ScrollView style={styles.list} contentContainerStyle={{ paddingBottom: 120 }}>
-        {targets.map((target) => {
-          const current = target.habitId ? logCounts[target.habitId] ?? 0 : 0;
-          return (
-            <Pressable
-              key={target.id}
-              onPress={() => router.push({ pathname: '/targets/[id]/edit', params: { id: target.id.toString() } })}
-              style={styles.card}
-            >
-              <Text style={styles.cardTitle}>{habitLabel(target.habitId)}</Text>
-              <Text style={styles.cardMeta}>Period: {target.periodType}</Text>
-              <Text style={styles.cardMeta}>Target: {target.targetValue}</Text>
-              <Text style={styles.cardMeta}>Progress: {current}</Text>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
-    </SafeAreaView>
+    <View style={styles.screen}>
+      {/* 16/04/26: Layered backdrop style. */}
+      <View style={styles.bgWash} />
+      <View style={styles.bgStripe} />
+      <SafeAreaView style={styles.container}>
+        <Pressable style={styles.backButton} onPress={() => router.back()}>
+          <Text style={styles.backButtonText}>Back</Text>
+        </Pressable>
+        <Text style={styles.title}>Targets</Text>
+        {/* 13/04/26: Consistent dark primary action. */}
+        <Pressable style={styles.primaryButton} onPress={() => router.push('/targets/add')}>
+          <Text style={styles.primaryButtonText}>Add Target</Text>
+        </Pressable>
+        {/* 14/04/26: Scroll long target entries. */}
+        <ScrollView style={styles.list} contentContainerStyle={{ paddingBottom: 120 }}>
+          {targets.map((target) => {
+            const current = progressForTarget(target);
+            const remaining = Math.max(0, target.targetValue - current);
+            const exceededBy = Math.max(0, current - target.targetValue);
+            const status = statusFor(current, target.targetValue);
+            return (
+              <Pressable
+                key={target.id}
+                onPress={() => router.push({ pathname: '/targets/[id]/edit', params: { id: target.id.toString() } })}
+                style={styles.card}
+              >
+                <Text style={styles.cardTitle}>{habitLabel(target.habitId)}</Text>
+                <Text style={styles.cardMeta}>Period: {target.periodType}</Text>
+                <Text style={styles.cardMeta}>Target: {target.targetValue}</Text>
+                <Text style={styles.cardMeta}>Progress: {current}</Text>
+                <Text style={styles.cardMeta}>Remaining: {remaining}</Text>
+                <Text style={styles.cardMeta}>Status: {status}</Text>
+                {status === 'Exceeded' ? (
+                  <Text style={styles.cardMeta}>Exceeded by: {exceededBy}</Text>
+                ) : null}
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 // 13/04/26: Dark themed styles for targets.
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: '#090f1f',
+  },
   container: {
     flex: 1,
     padding: 20,
     paddingTop: 40,
-    backgroundColor: '#171717',
+    backgroundColor: 'transparent',
+  },
+  bgWash: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(30, 41, 59, 0.25)',
+  },
+  bgStripe: {
+    position: 'absolute',
+    width: 560,
+    height: 220,
+    backgroundColor: 'rgba(45, 212, 191, 0.14)',
+    top: 40,
+    right: -140,
+    transform: [{ rotate: '-16deg' }],
   },
   title: {
     fontSize: 22,
     marginBottom: 10,
-    color: '#3b82f6',
+    color: '#f8fafc',
     fontWeight: '600',
   },
   list: {
@@ -107,41 +198,47 @@ const styles = StyleSheet.create({
   },
   card: {
     borderWidth: 1,
-    borderColor: '#3f3f46',
+    borderColor: 'rgba(255,255,255,0.2)',
     padding: 12,
     borderRadius: 12,
-    backgroundColor: '#262626',
+    backgroundColor: 'rgba(255,255,255,0.1)',
   },
   cardTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#e5e7eb',
+    color: '#f8fafc',
   },
   cardMeta: {
-    color: '#9ca3af',
+    color: '#cbd5e1',
     marginTop: 2,
   },
   primaryButton: {
     alignSelf: 'flex-start',
-    backgroundColor: '#1f1f1f',
-    borderColor: '#3f3f46',
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderColor: 'rgba(255,255,255,0.32)',
     borderWidth: 1,
     borderRadius: 999,
     paddingHorizontal: 16,
     paddingVertical: 8,
   },
   primaryButtonText: {
-    color: '#e5e7eb',
+    color: '#f8fafc',
     fontSize: 15,
     fontWeight: '600',
   },
   backButton: {
     alignSelf: 'flex-start',
     marginBottom: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
   backButtonText: {
-    color: '#3b82f6',
-    fontSize: 15,
+    color: '#f8fafc',
+    fontSize: 14,
     fontWeight: '600',
   },
 });

@@ -10,6 +10,37 @@ import { Habit, HabitContext } from '../_layout';
 // 11/04/26: Formats today as ISO date.
 const todayIso = () => new Date().toISOString().slice(0, 10);
 
+// 16/04/26: Parse iso to date.
+const parseIsoDate = (value: string) => {
+  const [y, m, d] = value.split('-').map(Number);
+  if (!y || !m || !d) return new Date();
+  return new Date(y, m - 1, d);
+};
+
+// 16/04/26: Date to iso string.
+const toIsoDate = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+// 16/04/26: Shift iso by days.
+const shiftIsoDate = (value: string, days: number) => {
+  const base = parseIsoDate(value);
+  base.setDate(base.getDate() + days);
+  return toIsoDate(base);
+};
+
+// 16/04/26: Readable date label.
+const prettyDate = (value: string) =>
+  parseIsoDate(value).toLocaleDateString('en-IE', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+
 // 11/04/26: Renders add log screen form.
 export default function AddLog() {
   const router = useRouter();
@@ -40,64 +71,105 @@ export default function AddLog() {
   };
 
   return (
-    <View style={styles.container}>
-      <Pressable style={styles.backButton} onPress={() => router.back()}>
-        <Text style={styles.backButtonText}>Back</Text>
-      </Pressable>
-      <Text style={styles.title}>Add Log</Text>
+    <View style={styles.screen}>
+      {/* 16/04/26: Layered backdrop style. */}
+      <View style={styles.bgWash} />
+      <View style={styles.bgStripe} />
+      <View style={styles.container}>
+        <Pressable style={styles.backButton} onPress={() => router.back()}>
+          <Text style={styles.backButtonText}>Back</Text>
+        </Pressable>
+        <Text style={styles.title}>Add Log</Text>
 
-      <Text style={styles.label}>Habit</Text>
-      <View style={styles.chipRow}>
-        {habits.map((habit) => (
-          <Pressable
-            key={habit.id}
-            onPress={() => setHabitId(habit.id)}
-            style={{
-              ...styles.chip,
-              borderColor: habitId === habit.id ? '#4b5563' : '#3f3f46',
-              backgroundColor: habitId === habit.id ? '#2f2f2f' : '#1f1f1f',
-            }}
-          >
-            <Text style={styles.chipText}>{habit.name}</Text>
+        <Text style={styles.label}>Habit</Text>
+        <View style={styles.chipRow}>
+          {habits.map((habit) => (
+            <Pressable
+              key={habit.id}
+              onPress={() => setHabitId(habit.id)}
+              style={{
+                ...styles.chip,
+                borderColor: habitId === habit.id ? 'rgba(255,255,255,0.34)' : 'rgba(255,255,255,0.22)',
+                backgroundColor: habitId === habit.id ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)',
+              }}
+            >
+              <Text style={styles.chipText}>{habit.name}</Text>
+            </Pressable>
+          ))}
+        </View>
+
+        <Text style={styles.label}>Date</Text>
+        <View style={styles.dateRow}>
+          <Pressable style={styles.dateStep} onPress={() => setLogDate((prev) => shiftIsoDate(prev, -1))}>
+            <Text style={styles.dateStepText}>-1 day</Text>
           </Pressable>
-        ))}
+          <View style={styles.dateCard}>
+            <Text style={styles.dateMain}>{prettyDate(logDate)}</Text>
+            <Text style={styles.dateSub}>{logDate}</Text>
+          </View>
+          <Pressable style={styles.dateStep} onPress={() => setLogDate((prev) => shiftIsoDate(prev, 1))}>
+            <Text style={styles.dateStepText}>+1 day</Text>
+          </Pressable>
+        </View>
+        <Pressable style={styles.todayButton} onPress={() => setLogDate(todayIso())}>
+          <Text style={styles.todayButtonText}>Today</Text>
+        </Pressable>
+        <TextInput
+          style={styles.input}
+          placeholder="Metric value"
+          placeholderTextColor="#cbd5e1"
+          value={metricValue}
+          onChangeText={setMetricValue}
+          keyboardType="numeric"
+        />
+        <TextInput style={styles.input} placeholder="Notes" placeholderTextColor="#cbd5e1" value={notes} onChangeText={setNotes} />
+        {/* 13/04/26: Consistent dark primary action. */}
+        <Pressable style={styles.primaryButton} onPress={saveLog}>
+          <Text style={styles.primaryButtonText}>Save Log</Text>
+        </Pressable>
       </View>
-
-      <TextInput style={styles.input} placeholder="Date (YYYY-MM-DD)" placeholderTextColor="#6b7280" value={logDate} onChangeText={setLogDate} />
-      <TextInput
-        style={styles.input}
-        placeholder="Metric value"
-        placeholderTextColor="#6b7280"
-        value={metricValue}
-        onChangeText={setMetricValue}
-        keyboardType="numeric"
-      />
-      <TextInput style={styles.input} placeholder="Notes" placeholderTextColor="#6b7280" value={notes} onChangeText={setNotes} />
-      {/* 13/04/26: Consistent dark primary action. */}
-      <Pressable style={styles.primaryButton} onPress={saveLog}>
-        <Text style={styles.primaryButtonText}>Save Log</Text>
-      </Pressable>
     </View>
   );
 }
 
 // 13/04/26: Dark themed styles for logs.
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: '#0b1224',
+  },
   container: {
     padding: 20,
     paddingTop: 40,
-    backgroundColor: '#171717',
+    backgroundColor: 'transparent',
     flex: 1,
+  },
+  bgWash: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(30, 41, 59, 0.25)',
+  },
+  bgStripe: {
+    position: 'absolute',
+    width: 540,
+    height: 220,
+    backgroundColor: 'rgba(56, 189, 248, 0.14)',
+    top: 20,
+    right: -150,
+    transform: [{ rotate: '-16deg' }],
   },
   title: {
     fontSize: 22,
     marginBottom: 10,
-    color: '#3b82f6',
+    color: '#f8fafc',
     fontWeight: '600',
   },
   label: {
     marginBottom: 6,
-    color: '#9ca3af',
+    color: '#cbd5e1',
   },
   chipRow: {
     flexDirection: 'row',
@@ -114,11 +186,64 @@ const styles = StyleSheet.create({
   chipText: {
     color: '#e5e7eb',
   },
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  dateStep: {
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.24)',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+  },
+  dateStepText: {
+    color: '#f8fafc',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  dateCard: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.24)',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  dateMain: {
+    color: '#f8fafc',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  dateSub: {
+    color: '#cbd5e1',
+    marginTop: 2,
+    fontSize: 12,
+  },
+  todayButton: {
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.24)',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginBottom: 10,
+  },
+  todayButtonText: {
+    color: '#f8fafc',
+    fontSize: 13,
+    fontWeight: '600',
+  },
   input: {
     borderWidth: 1,
-    borderColor: '#3f3f46',
-    backgroundColor: '#262626',
-    color: '#e5e7eb',
+    borderColor: 'rgba(255,255,255,0.24)',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    color: '#f8fafc',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 10,
@@ -126,25 +251,31 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     alignSelf: 'flex-start',
-    backgroundColor: '#1f1f1f',
-    borderColor: '#3f3f46',
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderColor: 'rgba(255,255,255,0.34)',
     borderWidth: 1,
     borderRadius: 999,
     paddingHorizontal: 16,
     paddingVertical: 8,
   },
   primaryButtonText: {
-    color: '#e5e7eb',
+    color: '#f8fafc',
     fontSize: 15,
     fontWeight: '600',
   },
   backButton: {
     alignSelf: 'flex-start',
     marginBottom: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
   backButtonText: {
-    color: '#3b82f6',
-    fontSize: 15,
+    color: '#f8fafc',
+    fontSize: 14,
     fontWeight: '600',
   },
 });

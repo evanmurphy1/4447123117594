@@ -8,6 +8,37 @@ import { db } from '@/db/client';
 import { habitLogsTable } from '@/db/schema';
 import { Habit, HabitContext } from '../../_layout';
 
+// 16/04/26: Parse iso to date.
+const parseIsoDate = (value: string) => {
+  const [y, m, d] = value.split('-').map(Number);
+  if (!y || !m || !d) return new Date();
+  return new Date(y, m - 1, d);
+};
+
+// 16/04/26: Date to iso string.
+const toIsoDate = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+// 16/04/26: Shift iso by days.
+const shiftIsoDate = (value: string, days: number) => {
+  const base = parseIsoDate(value);
+  base.setDate(base.getDate() + days);
+  return toIsoDate(base);
+};
+
+// 16/04/26: Readable date label.
+const prettyDate = (value: string) =>
+  parseIsoDate(value).toLocaleDateString('en-IE', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+
 // 11/04/26: Defines log row shape.
 type HabitLogRow = {
   id: number;
@@ -98,7 +129,19 @@ export default function EditLog() {
         ))}
       </View>
 
-      <TextInput style={styles.input} placeholder="Date (YYYY-MM-DD)" placeholderTextColor="#6b7280" value={logDate} onChangeText={setLogDate} />
+      <Text style={styles.label}>Date</Text>
+      <View style={styles.dateRow}>
+        <Pressable style={styles.dateStep} onPress={() => setLogDate((prev) => shiftIsoDate(prev, -1))}>
+          <Text style={styles.dateStepText}>-1 day</Text>
+        </Pressable>
+        <View style={styles.dateCard}>
+          <Text style={styles.dateMain}>{prettyDate(logDate)}</Text>
+          <Text style={styles.dateSub}>{logDate}</Text>
+        </View>
+        <Pressable style={styles.dateStep} onPress={() => setLogDate((prev) => shiftIsoDate(prev, 1))}>
+          <Text style={styles.dateStepText}>+1 day</Text>
+        </Pressable>
+      </View>
       <TextInput
         style={styles.input}
         placeholder="Metric value"
@@ -151,6 +194,44 @@ const styles = StyleSheet.create({
   },
   chipText: {
     color: '#e5e7eb',
+  },
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 10,
+  },
+  dateStep: {
+    borderWidth: 1,
+    borderColor: '#3f3f46',
+    backgroundColor: '#1f1f1f',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+  },
+  dateStepText: {
+    color: '#e5e7eb',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  dateCard: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#3f3f46',
+    backgroundColor: '#262626',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  dateMain: {
+    color: '#e5e7eb',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  dateSub: {
+    color: '#9ca3af',
+    marginTop: 2,
+    fontSize: 12,
   },
   input: {
     borderWidth: 1,

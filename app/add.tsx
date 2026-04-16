@@ -47,75 +47,101 @@ export default function AddHabit() {
   if (!context) return null;
 
   return (
-    <View style={styles.container}>
-      <Pressable style={styles.backButton} onPress={() => router.back()}>
-        <Text style={styles.backButtonText}>Back</Text>
-      </Pressable>
-      <Text style={styles.title}>Create Habit</Text>
-      <FormField
-        label="Habit Name"
-        placeholder="e.g. Walk 8k steps"
-        value={name}
-        onChangeText={(value) => {
-          setName(value);
-          if (nameError) setNameError('');
-        }}
-        error={nameError}
-      />
+    <View style={styles.screen}>
+      {/* 16/04/26: Layered backdrop style. */}
+      <View style={styles.bgWash} />
+      <View style={styles.bgStripe} />
+      <View style={styles.container}>
+        <Pressable style={styles.backButton} onPress={() => router.back()}>
+          <Text style={styles.backButtonText}>Back</Text>
+        </Pressable>
+        <Text style={styles.title}>Create Habit</Text>
+        <FormField
+          label="Habit Name"
+          placeholder="e.g. Walk 8k steps"
+          value={name}
+          onChangeText={(value) => {
+            setName(value);
+            if (nameError) setNameError('');
+          }}
+          error={nameError}
+        />
 
-      <Text style={styles.label}>Category</Text>
-      <View style={styles.chipRow}>
-        {categories.map((category) => {
-          const active = (selectedCategoryId ?? categories[0]?.id) === category.id;
-          return (
-            <Pressable
-              key={category.id}
-              onPress={() => setSelectedCategoryId(category.id)}
-              style={{
-                ...styles.chip,
-                borderColor: active ? '#4b5563' : '#3f3f46',
-                backgroundColor: active ? '#2f2f2f' : '#1f1f1f',
-              }}
-            >
-              <Text style={styles.chipText}>{category.name}</Text>
-            </Pressable>
-          );
-        })}
+        <Text style={styles.label}>Category</Text>
+        <View style={styles.chipRow}>
+          {categories.map((category) => {
+            const active = (selectedCategoryId ?? categories[0]?.id) === category.id;
+            return (
+              <Pressable
+                key={category.id}
+                onPress={() => setSelectedCategoryId(category.id)}
+                style={{
+                  ...styles.chip,
+                  borderColor: active ? 'rgba(255,255,255,0.34)' : 'rgba(255,255,255,0.22)',
+                  backgroundColor: active ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)',
+                }}
+              >
+                <Text style={styles.chipText}>{category.name}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+        {categoryError ? <Text style={styles.errorText}>{categoryError}</Text> : null}
+
+        <FormField
+          label="Notes (Optional)"
+          placeholder="Helpful context for this habit"
+          value={notes}
+          onChangeText={setNotes}
+        />
+        {/* 13/04/26: Primary action for habit save. */}
+        <Pressable style={styles.primaryButton} onPress={saveHabit}>
+          <Text style={styles.primaryButtonText}>Save Habit</Text>
+        </Pressable>
       </View>
-      {categoryError ? <Text style={styles.errorText}>{categoryError}</Text> : null}
-
-      <FormField
-        label="Notes (Optional)"
-        placeholder="Helpful context for this habit"
-        value={notes}
-        onChangeText={setNotes}
-      />
-      {/* 13/04/26: Primary action for habit save. */}
-      <Pressable style={styles.primaryButton} onPress={saveHabit}>
-        <Text style={styles.primaryButtonText}>Save Habit</Text>
-      </Pressable>
     </View>
   );
 }
 
 // 13/04/26: Dark themed styles for habit form.
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: '#0b1224',
+  },
   container: {
     padding: 20,
     paddingTop: 40,
-    backgroundColor: '#171717',
+    backgroundColor: 'transparent',
     flex: 1,
+  },
+  bgWash: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(30, 41, 59, 0.25)',
+  },
+  bgStripe: {
+    position: 'absolute',
+    width: 520,
+    height: 220,
+    backgroundColor: 'rgba(125, 211, 252, 0.16)',
+    top: 30,
+    right: -130,
+    transform: [{ rotate: '-16deg' }],
   },
   title: {
     fontSize: 22,
     marginBottom: 12,
-    color: '#3b82f6',
+    color: '#f8fafc',
     fontWeight: '600',
   },
   label: {
     marginTop: 12,
     marginBottom: 8,
-    color: '#9ca3af',
+    color: '#cbd5e1',
   },
   chipRow: {
     flexDirection: 'row',
@@ -130,7 +156,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   chipText: {
-    color: '#e5e7eb',
+    color: '#f8fafc',
   },
   errorText: {
     color: '#fca5a5',
@@ -139,8 +165,8 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     alignSelf: 'flex-start',
-    backgroundColor: '#1f1f1f',
-    borderColor: '#3f3f46',
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderColor: 'rgba(255,255,255,0.34)',
     borderWidth: 1,
     borderRadius: 999,
     paddingHorizontal: 16,
@@ -148,17 +174,23 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   primaryButtonText: {
-    color: '#e5e7eb',
+    color: '#f8fafc',
     fontSize: 15,
     fontWeight: '600',
   },
   backButton: {
     alignSelf: 'flex-start',
     marginBottom: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
   backButtonText: {
-    color: '#3b82f6',
-    fontSize: 15,
+    color: '#f8fafc',
+    fontSize: 14,
     fontWeight: '600',
   },
 });

@@ -8,6 +8,7 @@ import type { Habit } from '@/app/_layout';
 type TodayViewNewProps = {
   habits: Habit[];
   doneHabitIds?: number[];
+  streaks?: Record<number, number>;
   onHabitPress?: (habit: Habit) => void;
   onTogglePress?: (habit: Habit) => void;
 };
@@ -16,6 +17,7 @@ type TodayViewNewProps = {
 export default function TodayViewNew({
   habits,
   doneHabitIds = [],
+  streaks = {},
   onHabitPress,
   onTogglePress,
 }: TodayViewNewProps) {
@@ -26,6 +28,9 @@ export default function TodayViewNew({
           <Pressable style={styles.left} onPress={() => onHabitPress?.(habit)}>
             <View style={styles.textWrap}>
               <Text style={styles.name}>{habit.name}</Text>
+              {(streaks[habit.id] ?? 0) > 0 ? (
+                <Text style={styles.meta}>{streaks[habit.id]} day streak</Text>
+              ) : null}
             </View>
           </Pressable>
 
@@ -49,8 +54,8 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   card: {
-    backgroundColor: '#262626',
-    borderColor: '#3f3f46',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderColor: 'rgba(255,255,255,0.22)',
     borderWidth: 1,
     borderRadius: 16,
     padding: 14,
@@ -67,27 +72,34 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   name: {
-    color: '#e5e7eb',
+    color: '#f8fafc',
     fontSize: 17,
     fontWeight: '600',
+  },
+  meta: {
+    color: '#cbd5e1',
+    marginTop: 2,
   },
   toggle: {
     minWidth: 56,
     height: 42,
     borderRadius: 12,
-    backgroundColor: '#171717',
+    backgroundColor: 'rgba(255,255,255,0.14)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.28)',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 10,
   },
   toggleActive: {
-    backgroundColor: '#14532d',
+    backgroundColor: 'rgba(34,197,94,0.28)',
     borderWidth: 1,
-    borderColor: '#22c55e',
+    borderColor: 'rgba(134,239,172,0.8)',
   },
   toggleText: {
-    color: '#9ca3af',
+    color: '#f8fafc',
     fontSize: 12,
     fontWeight: '600',
   },
 });
+

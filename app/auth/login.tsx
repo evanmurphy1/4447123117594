@@ -41,52 +41,78 @@ export default function LoginScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Login</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        placeholderTextColor="#6b7280"
-        value={email}
-        autoCapitalize="none"
-        onChangeText={setEmail}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        placeholderTextColor="#6b7280"
-        value={password}
-        secureTextEntry
-        onChangeText={setPassword}
-      />
-      <Pressable style={styles.primaryButton} onPress={login}>
-        <Text style={styles.primaryButtonText}>Login</Text>
-      </Pressable>
-      <Link href="/auth/register" style={styles.linkText}>
-        New here? Create account
-      </Link>
+    <View style={styles.screen}>
+      {/* 16/04/26: Layered backdrop style. */}
+      <View style={styles.bgWash} />
+      <View style={styles.bgStripe} />
+      <View style={styles.container}>
+        <Text style={styles.title}>Login</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Email"
+          placeholderTextColor="#cbd5e1"
+          value={email}
+          autoCapitalize="none"
+          onChangeText={setEmail}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          placeholderTextColor="#cbd5e1"
+          value={password}
+          secureTextEntry
+          onChangeText={setPassword}
+        />
+        <Pressable style={styles.primaryButton} onPress={login}>
+          <Text style={styles.primaryButtonText}>Login</Text>
+        </Pressable>
+        <Link href="/auth/register" style={styles.linkText}>
+          New here? Create account
+        </Link>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: '#0b1224',
+  },
   container: {
     flex: 1,
-    backgroundColor: '#171717',
+    backgroundColor: 'transparent',
     padding: 20,
     paddingTop: 60,
   },
+  bgWash: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(30, 41, 59, 0.25)',
+  },
+  bgStripe: {
+    position: 'absolute',
+    width: 540,
+    height: 220,
+    backgroundColor: 'rgba(56, 189, 248, 0.14)',
+    top: 20,
+    right: -150,
+    transform: [{ rotate: '-16deg' }],
+  },
   title: {
     fontSize: 24,
-    color: '#3b82f6',
+    color: '#f8fafc',
     fontWeight: '700',
     marginBottom: 12,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#3f3f46',
-    backgroundColor: '#262626',
-    color: '#e5e7eb',
+    borderColor: 'rgba(255,255,255,0.24)',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    color: '#f8fafc',
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 10,
@@ -94,8 +120,8 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     alignSelf: 'flex-start',
-    backgroundColor: '#1f1f1f',
-    borderColor: '#3f3f46',
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderColor: 'rgba(255,255,255,0.32)',
     borderWidth: 1,
     borderRadius: 999,
     paddingHorizontal: 16,
@@ -103,13 +129,13 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   primaryButtonText: {
-    color: '#e5e7eb',
+    color: '#f8fafc',
     fontSize: 15,
     fontWeight: '600',
   },
   linkText: {
     marginTop: 12,
-    color: '#3b82f6',
+    color: '#cbd5e1',
     fontSize: 15,
   },
 });

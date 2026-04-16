@@ -32,82 +32,108 @@ export default function AddTarget() {
   };
 
   return (
-    <View style={styles.container}>
-      <Pressable style={styles.backButton} onPress={() => router.back()}>
-        <Text style={styles.backButtonText}>Back</Text>
-      </Pressable>
-      <Text style={styles.title}>Add Target</Text>
+    <View style={styles.screen}>
+      {/* 16/04/26: Layered backdrop style. */}
+      <View style={styles.bgWash} />
+      <View style={styles.bgStripe} />
+      <View style={styles.container}>
+        <Pressable style={styles.backButton} onPress={() => router.back()}>
+          <Text style={styles.backButtonText}>Back</Text>
+        </Pressable>
+        <Text style={styles.title}>Add Target</Text>
 
-      <Text style={styles.label}>Period</Text>
-      <View style={styles.row}>
-        <Pressable onPress={() => setPeriodType('weekly')}>
-          <Text style={{ color: periodType === 'weekly' ? '#e5e7eb' : '#9ca3af' }}>Weekly</Text>
-        </Pressable>
-        <Pressable onPress={() => setPeriodType('monthly')}>
-          <Text style={{ color: periodType === 'monthly' ? '#e5e7eb' : '#9ca3af' }}>Monthly</Text>
-        </Pressable>
-      </View>
+        <Text style={styles.label}>Period</Text>
+        <View style={styles.row}>
+          <Pressable onPress={() => setPeriodType('weekly')}>
+            <Text style={{ color: periodType === 'weekly' ? '#f8fafc' : '#cbd5e1' }}>Weekly</Text>
+          </Pressable>
+          <Pressable onPress={() => setPeriodType('monthly')}>
+            <Text style={{ color: periodType === 'monthly' ? '#f8fafc' : '#cbd5e1' }}>Monthly</Text>
+          </Pressable>
+        </View>
 
-      <Text style={styles.label}>Habit (optional)</Text>
-      <View style={styles.chipRow}>
-        <Pressable
-          onPress={() => setHabitId(null)}
-          style={{
-            ...styles.chip,
-            borderColor: habitId === null ? '#4b5563' : '#3f3f46',
-            backgroundColor: habitId === null ? '#2f2f2f' : '#1f1f1f',
-          }}
-        >
-          <Text style={styles.chipText}>All Habits</Text>
-        </Pressable>
-        {habits.map((habit: Habit) => (
+        <Text style={styles.label}>Habit (optional)</Text>
+        <View style={styles.chipRow}>
           <Pressable
-            key={habit.id}
-            onPress={() => setHabitId(habit.id)}
+            onPress={() => setHabitId(null)}
             style={{
               ...styles.chip,
-              borderColor: habitId === habit.id ? '#4b5563' : '#3f3f46',
-              backgroundColor: habitId === habit.id ? '#2f2f2f' : '#1f1f1f',
+              borderColor: habitId === null ? 'rgba(255,255,255,0.34)' : 'rgba(255,255,255,0.22)',
+              backgroundColor: habitId === null ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)',
             }}
           >
-            <Text style={styles.chipText}>{habit.name}</Text>
+            <Text style={styles.chipText}>All Habits</Text>
           </Pressable>
-        ))}
-      </View>
+          {habits.map((habit: Habit) => (
+            <Pressable
+              key={habit.id}
+              onPress={() => setHabitId(habit.id)}
+              style={{
+                ...styles.chip,
+                borderColor: habitId === habit.id ? 'rgba(255,255,255,0.34)' : 'rgba(255,255,255,0.22)',
+                backgroundColor: habitId === habit.id ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)',
+              }}
+            >
+              <Text style={styles.chipText}>{habit.name}</Text>
+            </Pressable>
+          ))}
+        </View>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Target value"
-        placeholderTextColor="#6b7280"
-        value={targetValue}
-        onChangeText={setTargetValue}
-        keyboardType="numeric"
-      />
-      {/* 13/04/26: Consistent dark primary action. */}
-      <Pressable style={styles.primaryButton} onPress={saveTarget}>
-        <Text style={styles.primaryButtonText}>Save Target</Text>
-      </Pressable>
+        <TextInput
+          style={styles.input}
+          placeholder="Target value"
+          placeholderTextColor="#cbd5e1"
+          value={targetValue}
+          onChangeText={setTargetValue}
+          keyboardType="numeric"
+        />
+        {/* 13/04/26: Consistent dark primary action. */}
+        <Pressable style={styles.primaryButton} onPress={saveTarget}>
+          <Text style={styles.primaryButtonText}>Save Target</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
 
 // 13/04/26: Dark themed styles for targets.
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: '#0b1224',
+  },
   container: {
     padding: 20,
     paddingTop: 40,
-    backgroundColor: '#171717',
+    backgroundColor: 'transparent',
     flex: 1,
+  },
+  bgWash: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(30, 41, 59, 0.25)',
+  },
+  bgStripe: {
+    position: 'absolute',
+    width: 540,
+    height: 220,
+    backgroundColor: 'rgba(45, 212, 191, 0.14)',
+    top: 20,
+    right: -150,
+    transform: [{ rotate: '-16deg' }],
   },
   title: {
     fontSize: 22,
     marginBottom: 10,
-    color: '#3b82f6',
+    color: '#f8fafc',
     fontWeight: '600',
   },
   label: {
     marginBottom: 6,
-    color: '#9ca3af',
+    color: '#cbd5e1',
   },
   row: {
     flexDirection: 'row',
@@ -127,13 +153,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   chipText: {
-    color: '#e5e7eb',
+    color: '#f8fafc',
   },
   input: {
     borderWidth: 1,
-    borderColor: '#3f3f46',
-    backgroundColor: '#262626',
-    color: '#e5e7eb',
+    borderColor: 'rgba(255,255,255,0.24)',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    color: '#f8fafc',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 10,
@@ -141,25 +167,31 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     alignSelf: 'flex-start',
-    backgroundColor: '#1f1f1f',
-    borderColor: '#3f3f46',
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderColor: 'rgba(255,255,255,0.34)',
     borderWidth: 1,
     borderRadius: 999,
     paddingHorizontal: 16,
     paddingVertical: 8,
   },
   primaryButtonText: {
-    color: '#e5e7eb',
+    color: '#f8fafc',
     fontSize: 15,
     fontWeight: '600',
   },
   backButton: {
     alignSelf: 'flex-start',
     marginBottom: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
   backButtonText: {
-    color: '#3b82f6',
-    fontSize: 15,
+    color: '#f8fafc',
+    fontSize: 14,
     fontWeight: '600',
   },
 });
