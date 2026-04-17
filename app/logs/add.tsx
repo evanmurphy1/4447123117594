@@ -45,6 +45,7 @@ const prettyDate = (value: string) =>
 export default function AddLog() {
   const router = useRouter();
   const context = useContext(HabitContext);
+  const theme = context?.theme;
 
   const habits = context?.habits ?? [];
   const [habitId, setHabitId] = useState<number>(habits[0]?.id ?? 0);
@@ -71,61 +72,96 @@ export default function AddLog() {
   };
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, theme ? { backgroundColor: theme.background } : null]}>
       {/* 16/04/26: Layered backdrop style. */}
-      <View style={styles.bgWash} />
-      <View style={styles.bgStripe} />
+      <View style={[styles.bgWash, theme ? { backgroundColor: theme.wash } : null]} />
+      <View style={[styles.bgStripe, theme ? { backgroundColor: theme.stripe } : null]} />
       <View style={styles.container}>
-        <Pressable style={styles.backButton} onPress={() => router.back()}>
-          <Text style={styles.backButtonText}>Back</Text>
+        <Pressable
+          style={[
+            styles.backButton,
+            theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null,
+          ]}
+          onPress={() => router.back()}
+        >
+          <Text style={[styles.backButtonText, theme ? { color: theme.text } : null]}>Back</Text>
         </Pressable>
-        <Text style={styles.title}>Add Log</Text>
+        <Text style={[styles.title, theme ? { color: theme.text } : null]}>Add Log</Text>
 
-        <Text style={styles.label}>Habit</Text>
+        <Text style={[styles.label, theme ? { color: theme.textMuted } : null]}>Habit</Text>
         <View style={styles.chipRow}>
           {habits.map((habit) => (
             <Pressable
               key={habit.id}
               onPress={() => setHabitId(habit.id)}
-              style={{
-                ...styles.chip,
-                borderColor: habitId === habit.id ? 'rgba(255,255,255,0.34)' : 'rgba(255,255,255,0.22)',
-                backgroundColor: habitId === habit.id ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)',
-              }}
-            >
-              <Text style={styles.chipText}>{habit.name}</Text>
+                style={{
+                  ...styles.chip,
+                  borderColor:
+                    habitId === habit.id ? theme?.buttonBorder ?? 'rgba(255,255,255,0.34)' : theme?.border ?? 'rgba(255,255,255,0.22)',
+                  backgroundColor:
+                    habitId === habit.id ? theme?.buttonBg ?? 'rgba(255,255,255,0.2)' : theme?.panel ?? 'rgba(255,255,255,0.1)',
+                }}
+              >
+              <Text style={[styles.chipText, theme ? { color: theme.text } : null]}>{habit.name}</Text>
             </Pressable>
           ))}
         </View>
 
-        <Text style={styles.label}>Date</Text>
+        <Text style={[styles.label, theme ? { color: theme.textMuted } : null]}>Date</Text>
         <View style={styles.dateRow}>
-          <Pressable style={styles.dateStep} onPress={() => setLogDate((prev) => shiftIsoDate(prev, -1))}>
-            <Text style={styles.dateStepText}>-1 day</Text>
+          <Pressable
+            style={[styles.dateStep, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}
+            onPress={() => setLogDate((prev) => shiftIsoDate(prev, -1))}
+          >
+            <Text style={[styles.dateStepText, theme ? { color: theme.text } : null]}>-1 day</Text>
           </Pressable>
-          <View style={styles.dateCard}>
-            <Text style={styles.dateMain}>{prettyDate(logDate)}</Text>
-            <Text style={styles.dateSub}>{logDate}</Text>
+          <View style={[styles.dateCard, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}>
+            <Text style={[styles.dateMain, theme ? { color: theme.text } : null]}>{prettyDate(logDate)}</Text>
+            <Text style={[styles.dateSub, theme ? { color: theme.textMuted } : null]}>{logDate}</Text>
           </View>
-          <Pressable style={styles.dateStep} onPress={() => setLogDate((prev) => shiftIsoDate(prev, 1))}>
-            <Text style={styles.dateStepText}>+1 day</Text>
+          <Pressable
+            style={[styles.dateStep, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}
+            onPress={() => setLogDate((prev) => shiftIsoDate(prev, 1))}
+          >
+            <Text style={[styles.dateStepText, theme ? { color: theme.text } : null]}>+1 day</Text>
           </Pressable>
         </View>
-        <Pressable style={styles.todayButton} onPress={() => setLogDate(todayIso())}>
-          <Text style={styles.todayButtonText}>Today</Text>
+        <Pressable
+          style={[styles.todayButton, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}
+          onPress={() => setLogDate(todayIso())}
+        >
+          <Text style={[styles.todayButtonText, theme ? { color: theme.text } : null]}>Today</Text>
         </Pressable>
         <TextInput
-          style={styles.input}
+          style={[
+            styles.input,
+            theme ? { borderColor: theme.border, backgroundColor: theme.panel, color: theme.text } : null,
+          ]}
           placeholder="Metric value"
-          placeholderTextColor="#cbd5e1"
+          placeholderTextColor={theme ? theme.textMuted : '#cbd5e1'}
           value={metricValue}
           onChangeText={setMetricValue}
           keyboardType="numeric"
         />
-        <TextInput style={styles.input} placeholder="Notes" placeholderTextColor="#cbd5e1" value={notes} onChangeText={setNotes} />
+        <TextInput
+          style={[
+            styles.input,
+            theme ? { borderColor: theme.border, backgroundColor: theme.panel, color: theme.text } : null,
+          ]}
+          placeholder="Notes"
+          placeholderTextColor={theme ? theme.textMuted : '#cbd5e1'}
+          value={notes}
+          onChangeText={setNotes}
+        />
         {/* 13/04/26: Consistent dark primary action. */}
-        <Pressable style={styles.primaryButton} onPress={saveLog}>
-          <Text style={styles.primaryButtonText}>Save Log</Text>
+        <Pressable
+          style={[
+            styles.primaryButton,
+            theme ? { backgroundColor: theme.buttonBg, borderColor: theme.buttonBorder } : null,
+          ]}
+          onPress={saveLog}
+        >
+          <Text style={[styles.primaryButtonText, theme ? { color: theme.text } : null]}>Save Log</Text>
         </Pressable>
       </View>
     </View>

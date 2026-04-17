@@ -22,6 +22,7 @@ export default function EditTarget() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const context = useContext(HabitContext);
+  const theme = context?.theme;
 
   const habits = context?.habits ?? [];
   const [target, setTarget] = useState<TargetRow | null>(null);
@@ -62,33 +63,36 @@ export default function EditTarget() {
   };
 
   return (
-    <View style={styles.container}>
-      <Pressable style={styles.backButton} onPress={() => router.back()}>
-        <Text style={styles.backButtonText}>Back</Text>
+    <View style={[styles.container, theme ? { backgroundColor: theme.background } : null]}>
+      <Pressable
+        style={[styles.backButton, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}
+        onPress={() => router.back()}
+      >
+        <Text style={[styles.backButtonText, theme ? { color: theme.text } : null]}>Back</Text>
       </Pressable>
-      <Text style={styles.title}>Edit Target</Text>
+      <Text style={[styles.title, theme ? { color: theme.text } : null]}>Edit Target</Text>
 
-      <Text style={styles.label}>Period</Text>
+      <Text style={[styles.label, theme ? { color: theme.textMuted } : null]}>Period</Text>
       <View style={styles.row}>
         <Pressable onPress={() => setPeriodType('weekly')}>
-          <Text style={{ color: periodType === 'weekly' ? '#e5e7eb' : '#9ca3af' }}>Weekly</Text>
+          <Text style={{ color: periodType === 'weekly' ? theme?.text ?? '#e5e7eb' : theme?.textMuted ?? '#9ca3af' }}>Weekly</Text>
         </Pressable>
         <Pressable onPress={() => setPeriodType('monthly')}>
-          <Text style={{ color: periodType === 'monthly' ? '#e5e7eb' : '#9ca3af' }}>Monthly</Text>
+          <Text style={{ color: periodType === 'monthly' ? theme?.text ?? '#e5e7eb' : theme?.textMuted ?? '#9ca3af' }}>Monthly</Text>
         </Pressable>
       </View>
 
-      <Text style={styles.label}>Habit (optional)</Text>
+      <Text style={[styles.label, theme ? { color: theme.textMuted } : null]}>Habit (optional)</Text>
       <View style={styles.chipRow}>
         <Pressable
           onPress={() => setHabitId(null)}
           style={{
             ...styles.chip,
-            borderColor: habitId === null ? '#4b5563' : '#3f3f46',
-            backgroundColor: habitId === null ? '#2f2f2f' : '#1f1f1f',
+            borderColor: habitId === null ? theme?.buttonBorder ?? '#4b5563' : theme?.border ?? '#3f3f46',
+            backgroundColor: habitId === null ? theme?.buttonBg ?? '#2f2f2f' : theme?.panel ?? '#1f1f1f',
           }}
         >
-          <Text style={styles.chipText}>All Habits</Text>
+          <Text style={[styles.chipText, theme ? { color: theme.text } : null]}>All Habits</Text>
         </Pressable>
         {habits.map((habit: Habit) => (
           <Pressable
@@ -96,26 +100,29 @@ export default function EditTarget() {
             onPress={() => setHabitId(habit.id)}
             style={{
               ...styles.chip,
-              borderColor: habitId === habit.id ? '#4b5563' : '#3f3f46',
-              backgroundColor: habitId === habit.id ? '#2f2f2f' : '#1f1f1f',
+              borderColor: habitId === habit.id ? theme?.buttonBorder ?? '#4b5563' : theme?.border ?? '#3f3f46',
+              backgroundColor: habitId === habit.id ? theme?.buttonBg ?? '#2f2f2f' : theme?.panel ?? '#1f1f1f',
             }}
           >
-            <Text style={styles.chipText}>{habit.name}</Text>
+            <Text style={[styles.chipText, theme ? { color: theme.text } : null]}>{habit.name}</Text>
           </Pressable>
         ))}
       </View>
 
       <TextInput
-        style={styles.input}
+        style={[styles.input, theme ? { borderColor: theme.border, backgroundColor: theme.panel, color: theme.text } : null]}
         placeholder="Target value"
-        placeholderTextColor="#6b7280"
+        placeholderTextColor={theme ? theme.textMuted : '#6b7280'}
         value={targetValue}
         onChangeText={setTargetValue}
         keyboardType="numeric"
       />
       {/* 13/04/26: Consistent dark primary action. */}
-      <Pressable style={styles.primaryButton} onPress={saveChanges}>
-        <Text style={styles.primaryButtonText}>Save Changes</Text>
+      <Pressable
+        style={[styles.primaryButton, theme ? { backgroundColor: theme.buttonBg, borderColor: theme.buttonBorder } : null]}
+        onPress={saveChanges}
+      >
+        <Text style={[styles.primaryButtonText, theme ? { color: theme.text } : null]}>Save Changes</Text>
       </Pressable>
       <Pressable style={styles.dangerButton} onPress={deleteTarget}>
         <Text style={styles.dangerButtonText}>Delete Target</Text>
@@ -204,10 +211,16 @@ const styles = StyleSheet.create({
   backButton: {
     alignSelf: 'flex-start',
     marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#3f3f46',
+    backgroundColor: '#1f1f1f',
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
   backButtonText: {
-    color: '#3b82f6',
-    fontSize: 15,
+    color: '#e5e7eb',
+    fontSize: 14,
     fontWeight: '600',
   },
 });

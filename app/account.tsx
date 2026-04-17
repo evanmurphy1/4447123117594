@@ -1,5 +1,6 @@
 // 14/04/26: Account actions screen.
 import { eq } from 'drizzle-orm';
+import * as FileSystem from 'expo-file-system/legacy';
 import { useRouter } from 'expo-router';
 import { useCallback, useContext } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
@@ -7,12 +8,14 @@ import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { HabitContext } from '@/app/_layout';
 import { db } from '@/db/client';
-import { authSessionTable, usersTable } from '@/db/schema';
+import { authSessionTable, categoriesTable, habitLogsTable, habitsTable, targetsTable, usersTable } from '@/db/schema';
 
 export default function AccountScreen() {
   const router = useRouter();
   const context = useContext(HabitContext);
   const user = context?.user ?? null;
+  const theme = context?.theme;
+  const themeMode = context?.themeMode ?? 'dark';
 
   useFocusEffect(
     useCallback(() => {
@@ -53,22 +56,166 @@ export default function AccountScreen() {
     router.replace('/auth/register');
   };
 
+  // 17/04/26: Escape csv values.
+  const csvValue = (value: unknown) => `"${String(value ?? '').replace(/"/g, '""')}"`;
+
+  // 17/04/26: Build csv content.
+  const buildCsv = async () => {
+    const [categories, habits, logs, targets] = await Promise.all([
+      db.select().from(categoriesTable),
+      db.select().from(habitsTable),
+      db.select().from(habitLogsTable),
+      db.select().from(targetsTable),
+    ]);
+
+    const rows: string[] = [];
+    rows.push(
+      'record_type,id,name,color,habit_id,category_id,log_date,metric_value,period_type,target_value,notes'
+    );
+
+    categories.forEach((row) => {
+      rows.push(
+        [
+          csvValue('category'),
+          csvValue(row.id),
+          csvValue(row.name),
+          csvValue(row.color),
+          csvValue(''),
+          csvValue(''),
+          csvValue(''),
+          csvValue(''),
+          csvValue(''),
+          csvValue(''),
+          csvValue(''),
+        ].join(',')
+      );
+    });
+
+    habits.forEach((row) => {
+      rows.push(
+        [
+          csvValue('habit'),
+          csvValue(row.id),
+          csvValue(row.name),
+          csvValue(''),
+          csvValue(''),
+          csvValue(row.categoryId),
+          csvValue(''),
+          csvValue(''),
+          csvValue(''),
+          csvValue(''),
+          csvValue(row.notes ?? ''),
+        ].join(',')
+      );
+    });
+
+    logs.forEach((row) => {
+      rows.push(
+        [
+          csvValue('habit_log'),
+          csvValue(row.id),
+          csvValue(''),
+          csvValue(''),
+          csvValue(row.habitId),
+          csvValue(row.categoryId),
+          csvValue(row.logDate),
+          csvValue(row.metricValue),
+          csvValue(''),
+          csvValue(''),
+          csvValue(row.notes ?? ''),
+        ].join(',')
+      );
+    });
+
+    targets.forEach((row) => {
+      rows.push(
+        [
+          csvValue('target'),
+          csvValue(row.id),
+          csvValue(''),
+          csvValue(''),
+          csvValue(row.habitId ?? ''),
+          csvValue(row.categoryId ?? ''),
+          csvValue(''),
+          csvValue(''),
+          csvValue(row.periodType),
+          csvValue(row.targetValue),
+          csvValue(''),
+        ].join(',')
+      );
+    });
+
+    return rows.join('\n');
+  };
+
+  // 17/04/26: Export csv to file.
+  const exportCsv = async () => {
+    try {
+      const csv = await buildCsv();
+      const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const path = `${FileSystem.documentDirectory}habit-export-${stamp}.csv`;
+      await FileSystem.writeAsStringAsync(path, csv, {
+        encoding: FileSystem.EncodingType.UTF8,
+      });
+      Alert.alert('Export complete', `Saved to:\n${path}`);
+    } catch {
+      Alert.alert('Export failed', 'Could not create CSV file.');
+    }
+  };
+
+  const toggleTheme = () => {
+    if (!context) return;
+    context.setThemeMode(themeMode === 'dark' ? 'light' : 'dark');
+  };
+
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, theme ? { backgroundColor: theme.background } : null]}>
       {/* 16/04/26: Layered backdrop style. */}
-      <View style={styles.bgWash} />
-      <View style={styles.bgStripe} />
+      <View style={[styles.bgWash, theme ? { backgroundColor: theme.wash } : null]} />
+      <View style={[styles.bgStripe, theme ? { backgroundColor: theme.stripe } : null]} />
       <View style={styles.container}>
-        <Pressable style={styles.backButton} onPress={() => router.back()}>
-          <Text style={styles.backButtonText}>Back</Text>
+        <Pressable
+          style={[
+            styles.backButton,
+            theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null,
+          ]}
+          onPress={() => router.back()}
+        >
+          <Text style={[styles.backButtonText, theme ? { color: theme.text } : null]}>Back</Text>
         </Pressable>
-        <Text style={styles.title}>Account</Text>
+        <Text style={[styles.title, theme ? { color: theme.text } : null]}>Account</Text>
         {user ? (
           <>
-            <Text style={styles.meta}>Name: {user.name}</Text>
-            <Text style={styles.meta}>Email: {user.email}</Text>
-            <Pressable style={styles.primaryButton} onPress={logout}>
-              <Text style={styles.primaryButtonText}>Logout</Text>
+            <Text style={[styles.meta, theme ? { color: theme.textMuted } : null]}>Name: {user.name}</Text>
+            <Text style={[styles.meta, theme ? { color: theme.textMuted } : null]}>Email: {user.email}</Text>
+            <Pressable
+              style={[
+                styles.primaryButton,
+                theme ? { backgroundColor: theme.buttonBg, borderColor: theme.buttonBorder } : null,
+              ]}
+              onPress={toggleTheme}
+            >
+              <Text style={[styles.primaryButtonText, theme ? { color: theme.text } : null]}>
+                {themeMode === 'dark' ? 'Switch To Light' : 'Switch To Dark'}
+              </Text>
+            </Pressable>
+            <Pressable
+              style={[
+                styles.primaryButton,
+                theme ? { backgroundColor: theme.buttonBg, borderColor: theme.buttonBorder } : null,
+              ]}
+              onPress={logout}
+            >
+              <Text style={[styles.primaryButtonText, theme ? { color: theme.text } : null]}>Logout</Text>
+            </Pressable>
+            <Pressable
+              style={[
+                styles.primaryButton,
+                theme ? { backgroundColor: theme.buttonBg, borderColor: theme.buttonBorder } : null,
+              ]}
+              onPress={exportCsv}
+            >
+              <Text style={[styles.primaryButtonText, theme ? { color: theme.text } : null]}>Export CSV</Text>
             </Pressable>
             <Pressable
               style={styles.dangerButton}
@@ -84,11 +231,23 @@ export default function AccountScreen() {
           </>
         ) : (
           <>
-            <Pressable style={styles.primaryButton} onPress={() => router.push('/auth/login')}>
-              <Text style={styles.primaryButtonText}>Login</Text>
+            <Pressable
+              style={[
+                styles.primaryButton,
+                theme ? { backgroundColor: theme.buttonBg, borderColor: theme.buttonBorder } : null,
+              ]}
+              onPress={() => router.push('/auth/login')}
+            >
+              <Text style={[styles.primaryButtonText, theme ? { color: theme.text } : null]}>Login</Text>
             </Pressable>
-            <Pressable style={styles.primaryButton} onPress={() => router.push('/auth/register')}>
-              <Text style={styles.primaryButtonText}>Register</Text>
+            <Pressable
+              style={[
+                styles.primaryButton,
+                theme ? { backgroundColor: theme.buttonBg, borderColor: theme.buttonBorder } : null,
+              ]}
+              onPress={() => router.push('/auth/register')}
+            >
+              <Text style={[styles.primaryButtonText, theme ? { color: theme.text } : null]}>Register</Text>
             </Pressable>
           </>
         )}
@@ -170,8 +329,6 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
-    backgroundColor: 'rgba(255,255,255,0.08)',
     borderRadius: 999,
     paddingHorizontal: 12,
     paddingVertical: 6,

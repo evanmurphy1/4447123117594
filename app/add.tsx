@@ -12,6 +12,7 @@ export default function AddHabit() {
   const router = useRouter();
   const context = useContext(HabitContext);
   const categories = context?.categories ?? [];
+  const theme = context?.theme;
 
   const [name, setName] = useState('');
   const [notes, setNotes] = useState('');
@@ -47,15 +48,21 @@ export default function AddHabit() {
   if (!context) return null;
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, theme ? { backgroundColor: theme.background } : null]}>
       {/* 16/04/26: Layered backdrop style. */}
-      <View style={styles.bgWash} />
-      <View style={styles.bgStripe} />
+      <View style={[styles.bgWash, theme ? { backgroundColor: theme.wash } : null]} />
+      <View style={[styles.bgStripe, theme ? { backgroundColor: theme.stripe } : null]} />
       <View style={styles.container}>
-        <Pressable style={styles.backButton} onPress={() => router.back()}>
-          <Text style={styles.backButtonText}>Back</Text>
+        <Pressable
+          style={[
+            styles.backButton,
+            theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null,
+          ]}
+          onPress={() => router.back()}
+        >
+          <Text style={[styles.backButtonText, theme ? { color: theme.text } : null]}>Back</Text>
         </Pressable>
-        <Text style={styles.title}>Create Habit</Text>
+        <Text style={[styles.title, theme ? { color: theme.text } : null]}>Create Habit</Text>
         <FormField
           label="Habit Name"
           placeholder="e.g. Walk 8k steps"
@@ -67,7 +74,7 @@ export default function AddHabit() {
           error={nameError}
         />
 
-        <Text style={styles.label}>Category</Text>
+        <Text style={[styles.label, theme ? { color: theme.textMuted } : null]}>Category</Text>
         <View style={styles.chipRow}>
           {categories.map((category) => {
             const active = (selectedCategoryId ?? categories[0]?.id) === category.id;
@@ -77,11 +84,11 @@ export default function AddHabit() {
                 onPress={() => setSelectedCategoryId(category.id)}
                 style={{
                   ...styles.chip,
-                  borderColor: active ? 'rgba(255,255,255,0.34)' : 'rgba(255,255,255,0.22)',
-                  backgroundColor: active ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)',
+                  borderColor: active ? theme?.buttonBorder ?? 'rgba(255,255,255,0.34)' : theme?.border ?? 'rgba(255,255,255,0.22)',
+                  backgroundColor: active ? theme?.buttonBg ?? 'rgba(255,255,255,0.2)' : theme?.panel ?? 'rgba(255,255,255,0.1)',
                 }}
               >
-                <Text style={styles.chipText}>{category.name}</Text>
+                <Text style={[styles.chipText, theme ? { color: theme.text } : null]}>{category.name}</Text>
               </Pressable>
             );
           })}
@@ -95,8 +102,14 @@ export default function AddHabit() {
           onChangeText={setNotes}
         />
         {/* 13/04/26: Primary action for habit save. */}
-        <Pressable style={styles.primaryButton} onPress={saveHabit}>
-          <Text style={styles.primaryButtonText}>Save Habit</Text>
+        <Pressable
+          style={[
+            styles.primaryButton,
+            theme ? { backgroundColor: theme.buttonBg, borderColor: theme.buttonBorder } : null,
+          ]}
+          onPress={saveHabit}
+        >
+          <Text style={[styles.primaryButtonText, theme ? { color: theme.text } : null]}>Save Habit</Text>
         </Pressable>
       </View>
     </View>

@@ -1,7 +1,8 @@
 // 09/04/26: Renders top bar with actions.
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
+import React, { useContext } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { HabitContext } from '@/app/_layout';
 
 // 09/04/26: Defines callbacks for header buttons.
 type HomeHeaderNewProps = {
@@ -14,12 +15,15 @@ export default function HomeHeaderNew({
   title = 'Habits',
   onAddPress,
 }: HomeHeaderNewProps) {
+  const context = useContext(HabitContext);
+  const theme = context?.theme;
+
   return (
     <View style={styles.row}>
-      <Text style={styles.title}>{title}</Text>
+      <Text style={[styles.title, theme ? { color: theme.text } : null]}>{title}</Text>
 
       <Pressable onPress={onAddPress} style={styles.iconButton}>
-        <Ionicons name="add" size={28} color="#e5e7eb" />
+        <Ionicons name="add" size={28} color={theme ? theme.text : '#e5e7eb'} />
       </Pressable>
     </View>
   );

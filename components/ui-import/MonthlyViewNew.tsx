@@ -1,8 +1,9 @@
 // 09/04/26: Renders monthly progress cards for habits.
-import React from 'react';
+import React, { useContext } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import type { Habit } from '@/app/_layout';
+import { HabitContext } from '@/app/_layout';
 
 type HabitLogRow = {
   id: number;
@@ -29,6 +30,8 @@ const monthKey = () => {
 
 // 16/04/26: Monthly counts from logs.
 export default function MonthlyViewNew({ habits, logs }: MonthlyViewNewProps) {
+  const context = useContext(HabitContext);
+  const theme = context?.theme;
   const currentMonth = monthKey();
 
   // 16/04/26: Monthly total metric sum.
@@ -46,9 +49,14 @@ export default function MonthlyViewNew({ habits, logs }: MonthlyViewNewProps) {
   return (
     <View style={styles.container}>
       {habits.map((habit) => (
-        <View key={habit.id} style={styles.card}>
-          <Text style={styles.name}>{habit.name}</Text>
-          <Text style={styles.meta}>This month: {totalThisMonth(habit.id)} total</Text>
+        <View
+          key={habit.id}
+          style={[styles.card, theme ? { backgroundColor: theme.panel, borderColor: theme.border } : null]}
+        >
+          <Text style={[styles.name, theme ? { color: theme.text } : null]}>{habit.name}</Text>
+          <Text style={[styles.meta, theme ? { color: theme.textMuted } : null]}>
+            This month: {totalThisMonth(habit.id)} total
+          </Text>
         </View>
       ))}
     </View>

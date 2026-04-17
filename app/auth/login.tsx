@@ -11,6 +11,7 @@ import { authSessionTable, usersTable } from '@/db/schema';
 export default function LoginScreen() {
   const router = useRouter();
   const context = useContext(HabitContext);
+  const theme = context?.theme;
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -41,32 +42,35 @@ export default function LoginScreen() {
   };
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, theme ? { backgroundColor: theme.background } : null]}>
       {/* 16/04/26: Layered backdrop style. */}
-      <View style={styles.bgWash} />
-      <View style={styles.bgStripe} />
+      <View style={[styles.bgWash, theme ? { backgroundColor: theme.wash } : null]} />
+      <View style={[styles.bgStripe, theme ? { backgroundColor: theme.stripe } : null]} />
       <View style={styles.container}>
-        <Text style={styles.title}>Login</Text>
+        <Text style={[styles.title, theme ? { color: theme.text } : null]}>Login</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, theme ? { borderColor: theme.border, backgroundColor: theme.panel, color: theme.text } : null]}
           placeholder="Email"
-          placeholderTextColor="#cbd5e1"
+          placeholderTextColor={theme?.textMuted ?? '#cbd5e1'}
           value={email}
           autoCapitalize="none"
           onChangeText={setEmail}
         />
         <TextInput
-          style={styles.input}
+          style={[styles.input, theme ? { borderColor: theme.border, backgroundColor: theme.panel, color: theme.text } : null]}
           placeholder="Password"
-          placeholderTextColor="#cbd5e1"
+          placeholderTextColor={theme?.textMuted ?? '#cbd5e1'}
           value={password}
           secureTextEntry
           onChangeText={setPassword}
         />
-        <Pressable style={styles.primaryButton} onPress={login}>
-          <Text style={styles.primaryButtonText}>Login</Text>
+        <Pressable
+          style={[styles.primaryButton, theme ? { backgroundColor: theme.buttonBg, borderColor: theme.buttonBorder } : null]}
+          onPress={login}
+        >
+          <Text style={[styles.primaryButtonText, theme ? { color: theme.text } : null]}>Login</Text>
         </Pressable>
-        <Link href="/auth/register" style={styles.linkText}>
+        <Link href="/auth/register" style={[styles.linkText, theme ? { color: theme.textMuted } : null]}>
           New here? Create account
         </Link>
       </View>

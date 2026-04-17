@@ -1,7 +1,8 @@
 // 09/04/26: Renders empty state with create action.
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
+import React, { useContext } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { HabitContext } from '@/app/_layout';
 
 // 09/04/26: Defines text and action props.
 type EmptyViewNewProps = {
@@ -18,14 +19,23 @@ export default function EmptyViewNew({
   buttonText = 'Create',
   onCreate,
 }: EmptyViewNewProps) {
+  const context = useContext(HabitContext);
+  const theme = context?.theme;
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{title}</Text>
-      <Text style={styles.subtitle}>{subtitle}</Text>
+      <Text style={[styles.title, theme ? { color: theme.text } : null]}>{title}</Text>
+      <Text style={[styles.subtitle, theme ? { color: theme.textMuted } : null]}>{subtitle}</Text>
 
-      <Pressable onPress={onCreate} style={styles.button}>
-        <Ionicons name="add" size={20} color="#e5e7eb" />
-        <Text style={styles.buttonText}>{buttonText}</Text>
+      <Pressable
+        onPress={onCreate}
+        style={[
+          styles.button,
+          theme ? { backgroundColor: theme.buttonBg, borderColor: theme.buttonBorder } : null,
+        ]}
+      >
+        <Ionicons name="add" size={20} color={theme ? theme.text : '#e5e7eb'} />
+        <Text style={[styles.buttonText, theme ? { color: theme.text } : null]}>{buttonText}</Text>
       </Pressable>
     </View>
   );

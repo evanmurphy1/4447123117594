@@ -12,6 +12,7 @@ export default function EditHabit() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const context = useContext(HabitContext);
+  const theme = context?.theme;
   const habits = context?.habits ?? [];
   const categories = context?.categories ?? [];
   const habit = habits.find((h: Habit) => h.id === Number(id));
@@ -37,15 +38,24 @@ export default function EditHabit() {
   };
 
   return (
-    <View style={styles.container}>
-      <Pressable style={styles.backButton} onPress={() => router.back()}>
-        <Text style={styles.backButtonText}>Back</Text>
+    <View style={[styles.container, theme ? { backgroundColor: theme.background } : null]}>
+      <Pressable
+        style={[styles.backButton, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}
+        onPress={() => router.back()}
+      >
+        <Text style={[styles.backButtonText, theme ? { color: theme.text } : null]}>Back</Text>
       </Pressable>
-      <Text style={{ fontSize: 22, marginBottom: 12 }}>Edit Habit</Text>
-      <TextInput value={name} onChangeText={setName} placeholder="Habit Name" />
+      <Text style={[styles.title, theme ? { color: theme.text } : null]}>Edit Habit</Text>
+      <TextInput
+        value={name}
+        onChangeText={setName}
+        placeholder="Habit Name"
+        placeholderTextColor={theme ? theme.textMuted : '#6b7280'}
+        style={[styles.input, theme ? { borderColor: theme.border, backgroundColor: theme.panel, color: theme.text } : null]}
+      />
 
-      <Text style={{ marginTop: 12, marginBottom: 8 }}>Category</Text>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+      <Text style={[styles.label, theme ? { color: theme.textMuted } : null]}>Category</Text>
+      <View style={styles.chipRow}>
         {categories.map((category) => {
           const active = categoryId === category.id;
           return (
@@ -53,14 +63,12 @@ export default function EditHabit() {
               key={category.id}
               onPress={() => setCategoryId(category.id)}
               style={{
-                borderWidth: 1,
-                borderColor: active ? category.color : '#d1d5db',
-                paddingHorizontal: 10,
-                paddingVertical: 6,
-                borderRadius: 8,
+                ...styles.chip,
+                borderColor: active ? theme?.buttonBorder ?? category.color : theme?.border ?? '#d1d5db',
+                backgroundColor: active ? theme?.buttonBg ?? '#f3f4f6' : theme?.panel ?? 'transparent',
               }}
             >
-              <Text>{category.name}</Text>
+              <Text style={[styles.chipText, theme ? { color: theme.text } : null]}>{category.name}</Text>
             </Pressable>
           );
         })}
@@ -70,7 +78,12 @@ export default function EditHabit() {
         value={notes}
         onChangeText={setNotes}
         placeholder="Notes"
-        style={{ marginTop: 12, marginBottom: 12 }}
+        placeholderTextColor={theme ? theme.textMuted : '#6b7280'}
+        style={[
+          styles.input,
+          styles.notesInput,
+          theme ? { borderColor: theme.border, backgroundColor: theme.panel, color: theme.text } : null,
+        ]}
       />
       <Button title="Save Changes" onPress={saveChanges} />
     </View>
@@ -84,13 +97,57 @@ const styles = StyleSheet.create({
     backgroundColor: '#171717',
     flex: 1,
   },
+  title: {
+    fontSize: 22,
+    marginBottom: 12,
+    color: '#e5e7eb',
+    fontWeight: '600',
+  },
+  label: {
+    marginTop: 12,
+    marginBottom: 8,
+    color: '#9ca3af',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#3f3f46',
+    backgroundColor: '#262626',
+    color: '#e5e7eb',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+  },
+  notesInput: {
+    marginTop: 12,
+    marginBottom: 12,
+  },
+  chipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  chip: {
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  chipText: {
+    color: '#e5e7eb',
+  },
   backButton: {
     alignSelf: 'flex-start',
     marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#3f3f46',
+    backgroundColor: '#1f1f1f',
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
   backButtonText: {
-    color: '#3b82f6',
-    fontSize: 15,
+    color: '#e5e7eb',
+    fontSize: 14,
     fontWeight: '600',
   },
 });

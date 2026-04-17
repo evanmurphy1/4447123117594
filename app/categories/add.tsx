@@ -11,6 +11,7 @@ import { HabitContext } from '../_layout';
 export default function AddCategory() {
   const router = useRouter();
   const context = useContext(HabitContext);
+  const theme = context?.theme;
 
   const [name, setName] = useState('');
   const [color, setColor] = useState('#22c55e');
@@ -31,20 +32,50 @@ export default function AddCategory() {
   };
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, theme ? { backgroundColor: theme.background } : null]}>
       {/* 16/04/26: Layered backdrop style. */}
-      <View style={styles.bgWash} />
-      <View style={styles.bgStripe} />
+      <View style={[styles.bgWash, theme ? { backgroundColor: theme.wash } : null]} />
+      <View style={[styles.bgStripe, theme ? { backgroundColor: theme.stripe } : null]} />
       <View style={styles.container}>
-        <Pressable style={styles.backButton} onPress={() => router.back()}>
-          <Text style={styles.backButtonText}>Back</Text>
+        <Pressable
+          style={[
+            styles.backButton,
+            theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null,
+          ]}
+          onPress={() => router.back()}
+        >
+          <Text style={[styles.backButtonText, theme ? { color: theme.text } : null]}>Back</Text>
         </Pressable>
-        <Text style={styles.title}>Add Category</Text>
-        <TextInput style={styles.input} placeholder="Name" placeholderTextColor="#cbd5e1" value={name} onChangeText={setName} />
-        <TextInput style={styles.input} placeholder="Color (hex)" placeholderTextColor="#cbd5e1" value={color} onChangeText={setColor} />
+        <Text style={[styles.title, theme ? { color: theme.text } : null]}>Add Category</Text>
+        <TextInput
+          style={[
+            styles.input,
+            theme ? { borderColor: theme.border, backgroundColor: theme.panel, color: theme.text } : null,
+          ]}
+          placeholder="Name"
+          placeholderTextColor={theme ? theme.textMuted : '#cbd5e1'}
+          value={name}
+          onChangeText={setName}
+        />
+        <TextInput
+          style={[
+            styles.input,
+            theme ? { borderColor: theme.border, backgroundColor: theme.panel, color: theme.text } : null,
+          ]}
+          placeholder="Color (hex)"
+          placeholderTextColor={theme ? theme.textMuted : '#cbd5e1'}
+          value={color}
+          onChangeText={setColor}
+        />
         {/* 13/04/26: Consistent dark primary action. */}
-        <Pressable style={styles.primaryButton} onPress={saveCategory}>
-          <Text style={styles.primaryButtonText}>Save Category</Text>
+        <Pressable
+          style={[
+            styles.primaryButton,
+            theme ? { backgroundColor: theme.buttonBg, borderColor: theme.buttonBorder } : null,
+          ]}
+          onPress={saveCategory}
+        >
+          <Text style={[styles.primaryButtonText, theme ? { color: theme.text } : null]}>Save Category</Text>
         </Pressable>
       </View>
     </View>

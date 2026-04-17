@@ -1,6 +1,6 @@
 //08/04/26 changed for habits
-import { and, eq } from 'drizzle-orm';
 import { useFocusEffect } from '@react-navigation/native';
+import { and, eq } from 'drizzle-orm';
 import { useRouter } from 'expo-router';
 import { useCallback, useContext, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -138,107 +138,76 @@ export default function IndexScreen() {
   if (!context) return null;
 
   return (
-    <View style={styles.screen}>
-      {/* 16/04/26: Layered backdrop style. */}
-      <View style={styles.bgWash} />
-      <View style={styles.bgStripe} />
-      <SafeAreaView style={styles.container}>
-        <HomeHeaderNew onAddPress={() => router.push({ pathname: '../add' })} />
-        {/* 11/04/26: Adds quick navigation to management screens. */}
-        <View style={styles.navRow}>
-          <Pressable style={styles.navLink} onPress={() => router.push('/categories')}>
-            <Text style={styles.navText}>Categories</Text>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#171717', padding: 20 }}>
+      <HomeHeaderNew onAddPress={() => router.push({ pathname: '../add' })} />
+      {/* 11/04/26: Adds quick navigation to management screens. */}
+      <View style={styles.navRow}>
+        <Pressable style={styles.navLink} onPress={() => router.push('/categories')}>
+          <Text style={styles.navText}>Categories</Text>
+        </Pressable>
+        <Pressable style={styles.navLink} onPress={() => router.push('/logs')}>
+          <Text style={styles.navText}>Logs</Text>
+        </Pressable>
+        <Pressable style={styles.navLink} onPress={() => router.push('/targets')}>
+          <Text style={styles.navText}>Targets</Text>
+        </Pressable>
+        <Pressable style={styles.navLink} onPress={() => router.push('/insights')}>
+          <Text style={styles.navText}>Insights</Text>
+        </Pressable>
+        {user ? (
+          <Pressable style={styles.navLink} onPress={() => router.push('/account')}>
+            <Text style={styles.navText}>Account</Text>
           </Pressable>
-          <Pressable style={styles.navLink} onPress={() => router.push('/logs')}>
-            <Text style={styles.navText}>Logs</Text>
-          </Pressable>
-          <Pressable style={styles.navLink} onPress={() => router.push('/targets')}>
-            <Text style={styles.navText}>Targets</Text>
-          </Pressable>
-          <Pressable style={styles.navLink} onPress={() => router.push('/insights')}>
-            <Text style={styles.navText}>Insights</Text>
-          </Pressable>
-          {user ? (
-            <Pressable style={styles.navLink} onPress={() => router.push('/account')}>
-              <Text style={styles.navText}>Account</Text>
-            </Pressable>
-          ) : (
-            <>
-              <Pressable style={styles.navLink} onPress={() => router.push('/auth/login')}>
-                <Text style={styles.navText}>Login</Text>
-              </Pressable>
-              <Pressable style={styles.navLink} onPress={() => router.push('/auth/register')}>
-                <Text style={styles.navText}>Register</Text>
-              </Pressable>
-            </>
-          )}
-        </View>
-        <HabitTabsNew filters={FILTERS} activeTab={activeTab} onChange={(tab) => setActiveTab(tab)} />
-
-        {isEmpty ? (
-          <EmptyViewNew onCreate={() => router.push({ pathname: '../add' })} />
         ) : (
-          <View style={{ flex: 1 }}>
-            {/* 13/04/26: Uses dark button for action. */}
-            <Pressable style={styles.primaryButton} onPress={() => router.push({ pathname: '../add' })}>
-              <Text style={styles.primaryButtonText}>Add Habit</Text>
+          <>
+            <Pressable style={styles.navLink} onPress={() => router.push('/auth/login')}>
+              <Text style={styles.navText}>Login</Text>
             </Pressable>
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 12 }}>
-              {activeTab === 'Today' ? (
-                <TodayViewNew
-                  habits={visibleHabits}
-                  doneHabitIds={doneHabitIds}
-                  streaks={streaks}
-                  onHabitPress={(habit) =>
-                    router.push({ pathname: '/habit/[id]', params: { id: habit.id.toString() } })
-                  }
-                  onTogglePress={toggleHabitDone}
-                />
-              ) : activeTab === 'Weekly' ? (
-                <WeeklyViewNew habits={visibleHabits} logs={logs} />
-              ) : activeTab === 'Monthly' ? (
-                <MonthlyViewNew habits={visibleHabits} logs={logs} />
-              ) : activeTab === 'Overall' ? (
-                <OverallViewNew habits={visibleHabits} logs={logs} streaks={streaks} />
-              ) : (
-                visibleHabits.map((habit: Habit) => <HabitCard key={habit.id} habit={habit} />)
-              )}
-            </ScrollView>
-          </View>
+            <Pressable style={styles.navLink} onPress={() => router.push('/auth/register')}>
+              <Text style={styles.navText}>Register</Text>
+            </Pressable>
+          </>
         )}
-      </SafeAreaView>
-    </View>
+      </View>
+      <HabitTabsNew filters={FILTERS} activeTab={activeTab} onChange={(tab) => setActiveTab(tab)} />
+
+      {isEmpty ? (
+        <EmptyViewNew onCreate={() => router.push({ pathname: '../add' })} />
+      ) : (
+        <View style={{ flex: 1 }}>
+          {/* 13/04/26: Uses dark button for action. */}
+          <Pressable style={styles.primaryButton} onPress={() => router.push({ pathname: '../add' })}>
+            <Text style={styles.primaryButtonText}>Add Habit</Text>
+          </Pressable>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 12 }}>
+            {activeTab === 'Today' ? (
+              <TodayViewNew
+                habits={visibleHabits}
+                doneHabitIds={doneHabitIds}
+                streaks={streaks}
+                onHabitPress={(habit) =>
+                  router.push({ pathname: '/habit/[id]', params: { id: habit.id.toString() } })
+                }
+                onTogglePress={toggleHabitDone}
+              />
+            ) : activeTab === 'Weekly' ? (
+              <WeeklyViewNew habits={visibleHabits} logs={logs} />
+            ) : activeTab === 'Monthly' ? (
+              <MonthlyViewNew habits={visibleHabits} logs={logs} />
+            ) : activeTab === 'Overall' ? (
+              <OverallViewNew habits={visibleHabits} logs={logs} streaks={streaks} />
+            ) : (
+              visibleHabits.map((habit: Habit) => <HabitCard key={habit.id} habit={habit} />)
+            )}
+          </ScrollView>
+        </View>
+      )}
+    </SafeAreaView>
   );
 }
 
 // 13/04/26: Dark themed styles for home.
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: '#090f1f',
-  },
-  container: {
-    flex: 1,
-    backgroundColor: 'transparent',
-    padding: 20,
-  },
-  bgWash: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(30, 41, 59, 0.25)',
-  },
-  bgStripe: {
-    position: 'absolute',
-    width: 560,
-    height: 220,
-    backgroundColor: 'rgba(125, 211, 252, 0.16)',
-    top: 40,
-    right: -150,
-    transform: [{ rotate: '-18deg' }],
-  },
   navRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -246,30 +215,22 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   navLink: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.22)',
-    backgroundColor: 'rgba(255,255,255,0.10)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
   navText: {
-    color: '#e2e8f0',
-    fontSize: 14,
-    fontWeight: '600',
+    color: '#3b82f6',
+    fontSize: 16,
   },
   primaryButton: {
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    borderColor: 'rgba(255,255,255,0.3)',
-    borderWidth: 1,
-    borderRadius: 999,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    alignSelf: 'center',
+    backgroundColor: 'transparent',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
   primaryButtonText: {
-    color: '#f8fafc',
-    fontSize: 15,
+    color: '#3b82f6',
+    fontSize: 16,
     fontWeight: '600',
   },
 });

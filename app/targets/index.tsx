@@ -58,6 +58,7 @@ const getMonthKey = () => {
 export default function TargetsIndex() {
   const router = useRouter();
   const context = useContext(HabitContext);
+  const theme = context?.theme;
   const [targets, setTargets] = useState<TargetRow[]>([]);
   const [logs, setLogs] = useState<HabitLogRow[]>([]);
 
@@ -113,18 +114,30 @@ export default function TargetsIndex() {
   };
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, theme ? { backgroundColor: theme.background } : null]}>
       {/* 16/04/26: Layered backdrop style. */}
-      <View style={styles.bgWash} />
-      <View style={styles.bgStripe} />
+      <View style={[styles.bgWash, theme ? { backgroundColor: theme.wash } : null]} />
+      <View style={[styles.bgStripe, theme ? { backgroundColor: theme.stripe } : null]} />
       <SafeAreaView style={styles.container}>
-        <Pressable style={styles.backButton} onPress={() => router.back()}>
-          <Text style={styles.backButtonText}>Back</Text>
+        <Pressable
+          style={[
+            styles.backButton,
+            theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null,
+          ]}
+          onPress={() => router.back()}
+        >
+          <Text style={[styles.backButtonText, theme ? { color: theme.text } : null]}>Back</Text>
         </Pressable>
-        <Text style={styles.title}>Targets</Text>
+        <Text style={[styles.title, theme ? { color: theme.text } : null]}>Targets</Text>
         {/* 13/04/26: Consistent dark primary action. */}
-        <Pressable style={styles.primaryButton} onPress={() => router.push('/targets/add')}>
-          <Text style={styles.primaryButtonText}>Add Target</Text>
+        <Pressable
+          style={[
+            styles.primaryButton,
+            theme ? { backgroundColor: theme.buttonBg, borderColor: theme.buttonBorder } : null,
+          ]}
+          onPress={() => router.push('/targets/add')}
+        >
+          <Text style={[styles.primaryButtonText, theme ? { color: theme.text } : null]}>Add Target</Text>
         </Pressable>
         {/* 14/04/26: Scroll long target entries. */}
         <ScrollView style={styles.list} contentContainerStyle={{ paddingBottom: 120 }}>
@@ -137,16 +150,16 @@ export default function TargetsIndex() {
               <Pressable
                 key={target.id}
                 onPress={() => router.push({ pathname: '/targets/[id]/edit', params: { id: target.id.toString() } })}
-                style={styles.card}
+                style={[styles.card, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}
               >
-                <Text style={styles.cardTitle}>{habitLabel(target.habitId)}</Text>
-                <Text style={styles.cardMeta}>Period: {target.periodType}</Text>
-                <Text style={styles.cardMeta}>Target: {target.targetValue}</Text>
-                <Text style={styles.cardMeta}>Progress: {current}</Text>
-                <Text style={styles.cardMeta}>Remaining: {remaining}</Text>
-                <Text style={styles.cardMeta}>Status: {status}</Text>
+                <Text style={[styles.cardTitle, theme ? { color: theme.text } : null]}>{habitLabel(target.habitId)}</Text>
+                <Text style={[styles.cardMeta, theme ? { color: theme.textMuted } : null]}>Period: {target.periodType}</Text>
+                <Text style={[styles.cardMeta, theme ? { color: theme.textMuted } : null]}>Target: {target.targetValue}</Text>
+                <Text style={[styles.cardMeta, theme ? { color: theme.textMuted } : null]}>Progress: {current}</Text>
+                <Text style={[styles.cardMeta, theme ? { color: theme.textMuted } : null]}>Remaining: {remaining}</Text>
+                <Text style={[styles.cardMeta, theme ? { color: theme.textMuted } : null]}>Status: {status}</Text>
                 {status === 'Exceeded' ? (
-                  <Text style={styles.cardMeta}>Exceeded by: {exceededBy}</Text>
+                  <Text style={[styles.cardMeta, theme ? { color: theme.textMuted } : null]}>Exceeded by: {exceededBy}</Text>
                 ) : null}
               </Pressable>
             );

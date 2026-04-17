@@ -13,6 +13,7 @@ import { Category, HabitContext } from '../_layout';
 export default function CategoriesIndex() {
   const router = useRouter();
   const context = useContext(HabitContext);
+  const theme = context?.theme;
   const [categories, setCategories] = useState<Category[]>([]);
 
   useFocusEffect(
@@ -35,18 +36,30 @@ export default function CategoriesIndex() {
   );
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, theme ? { backgroundColor: theme.background } : null]}>
       {/* 16/04/26: Layered backdrop style. */}
-      <View style={styles.bgWash} />
-      <View style={styles.bgStripe} />
+      <View style={[styles.bgWash, theme ? { backgroundColor: theme.wash } : null]} />
+      <View style={[styles.bgStripe, theme ? { backgroundColor: theme.stripe } : null]} />
       <SafeAreaView style={styles.container}>
-        <Pressable style={styles.backButton} onPress={() => router.back()}>
-          <Text style={styles.backButtonText}>Back</Text>
+        <Pressable
+          style={[
+            styles.backButton,
+            theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null,
+          ]}
+          onPress={() => router.back()}
+        >
+          <Text style={[styles.backButtonText, theme ? { color: theme.text } : null]}>Back</Text>
         </Pressable>
-        <Text style={styles.title}>Categories</Text>
+        <Text style={[styles.title, theme ? { color: theme.text } : null]}>Categories</Text>
         {/* 13/04/26: Uses consistent button styling. */}
-        <Pressable style={styles.primaryButton} onPress={() => router.push('/categories/add')}>
-          <Text style={styles.primaryButtonText}>Add Category</Text>
+        <Pressable
+          style={[
+            styles.primaryButton,
+            theme ? { backgroundColor: theme.buttonBg, borderColor: theme.buttonBorder } : null,
+          ]}
+          onPress={() => router.push('/categories/add')}
+        >
+          <Text style={[styles.primaryButtonText, theme ? { color: theme.text } : null]}>Add Category</Text>
         </Pressable>
         {/* 14/04/26: Scroll long category entries. */}
         <ScrollView style={styles.list} contentContainerStyle={{ paddingBottom: 120 }}>
@@ -54,10 +67,10 @@ export default function CategoriesIndex() {
             <Pressable
               key={category.id}
               onPress={() => router.push({ pathname: '/categories/[id]/edit', params: { id: category.id.toString() } })}
-              style={styles.card}
+              style={[styles.card, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}
             >
-              <Text style={styles.cardTitle}>{category.name}</Text>
-              <Text style={styles.cardMeta}>Color: {category.color}</Text>
+              <Text style={[styles.cardTitle, theme ? { color: theme.text } : null]}>{category.name}</Text>
+              <Text style={[styles.cardMeta, theme ? { color: theme.textMuted } : null]}>Color: {category.color}</Text>
             </Pressable>
           ))}
         </ScrollView>

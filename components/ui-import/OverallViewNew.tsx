@@ -1,8 +1,9 @@
 // 09/04/26: Renders overall habit consistency overview cards.
-import React from 'react';
+import React, { useContext } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import type { Habit } from '@/app/_layout';
+import { HabitContext } from '@/app/_layout';
 
 type HabitLogRow = {
   id: number;
@@ -39,6 +40,8 @@ const trendLabel = (total: number) => {
 
 // 16/04/26: Displays monthly trend buckets.
 export default function OverallViewNew({ habits, logs, streaks }: OverallViewNewProps) {
+  const context = useContext(HabitContext);
+  const theme = context?.theme;
   const currentMonth = monthKey();
 
   const monthlyTotal = (habitId: number) => {
@@ -57,11 +60,18 @@ export default function OverallViewNew({ habits, logs, streaks }: OverallViewNew
       {habits.map((habit) => {
         const total = monthlyTotal(habit.id);
         return (
-          <View key={habit.id} style={styles.card}>
-            <Text style={styles.name}>{habit.name}</Text>
-            <Text style={styles.meta}>Overall trend: {trendLabel(total)}</Text>
-            <Text style={styles.meta}>This month total: {total}</Text>
-            <Text style={styles.meta}>{streaks[habit.id] ?? 0} day streak</Text>
+          <View
+            key={habit.id}
+            style={[styles.card, theme ? { backgroundColor: theme.panel, borderColor: theme.border } : null]}
+          >
+            <Text style={[styles.name, theme ? { color: theme.text } : null]}>{habit.name}</Text>
+            <Text style={[styles.meta, theme ? { color: theme.textMuted } : null]}>
+              Overall trend: {trendLabel(total)}
+            </Text>
+            <Text style={[styles.meta, theme ? { color: theme.textMuted } : null]}>This month total: {total}</Text>
+            <Text style={[styles.meta, theme ? { color: theme.textMuted } : null]}>
+              {streaks[habit.id] ?? 0} day streak
+            </Text>
           </View>
         );
       })}

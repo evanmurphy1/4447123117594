@@ -1,6 +1,7 @@
 // 09/04/26: Renders tab pills for view switching.
-import React from 'react';
+import React, { useContext } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { HabitContext } from '@/app/_layout';
 
 // 09/04/26: Defines props for reusable tabs component.
 type HabitTabsNewProps = {
@@ -11,6 +12,8 @@ type HabitTabsNewProps = {
 
 // 09/04/26: Displays selectable tabs with active styles.
 export default function HabitTabsNew({ filters, activeTab, onChange }: HabitTabsNewProps) {
+  const context = useContext(HabitContext);
+  const theme = context?.theme;
   return (
     <View style={styles.row}>
       {filters.map((item) => {
@@ -19,9 +22,24 @@ export default function HabitTabsNew({ filters, activeTab, onChange }: HabitTabs
           <Pressable
             key={item}
             onPress={() => onChange(item)}
-            style={[styles.pill, active ? styles.activePill : styles.inactivePill]}
+            style={[
+              styles.pill,
+              active ? styles.activePill : styles.inactivePill,
+              theme
+                ? {
+                    borderColor: theme.border,
+                    backgroundColor: active ? theme.buttonBg : theme.panel,
+                  }
+                : null,
+            ]}
           >
-            <Text style={[styles.label, active ? styles.activeLabel : styles.inactiveLabel]}>
+            <Text
+              style={[
+                styles.label,
+                active ? styles.activeLabel : styles.inactiveLabel,
+                theme ? { color: active ? theme.text : theme.textMuted } : null,
+              ]}
+            >
               {item}
             </Text>
           </Pressable>

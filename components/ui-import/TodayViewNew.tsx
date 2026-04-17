@@ -1,7 +1,8 @@
 // 09/04/26: Renders today habits list in cards.
-import React from 'react';
+import React, { useContext } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { HabitContext } from '@/app/_layout';
 import type { Habit } from '@/app/_layout';
 
 // 09/04/26: Defines props for today view actions.
@@ -21,25 +22,39 @@ export default function TodayViewNew({
   onHabitPress,
   onTogglePress,
 }: TodayViewNewProps) {
+  const context = useContext(HabitContext);
+  const theme = context?.theme;
+
   return (
     <View style={styles.container}>
       {habits.map((habit) => (
-        <View key={habit.id} style={styles.card}>
+        <View
+          key={habit.id}
+          style={[styles.card, theme ? { backgroundColor: theme.panel, borderColor: theme.border } : null]}
+        >
           <Pressable style={styles.left} onPress={() => onHabitPress?.(habit)}>
             <View style={styles.textWrap}>
-              <Text style={styles.name}>{habit.name}</Text>
+              <Text style={[styles.name, theme ? { color: theme.text } : null]}>{habit.name}</Text>
               {(streaks[habit.id] ?? 0) > 0 ? (
-                <Text style={styles.meta}>{streaks[habit.id]} day streak</Text>
+                <Text style={[styles.meta, theme ? { color: theme.textMuted } : null]}>
+                  {streaks[habit.id]} day streak
+                </Text>
               ) : null}
             </View>
           </Pressable>
 
           <Pressable
-            style={[styles.toggle, doneHabitIds.includes(habit.id) ? styles.toggleActive : null]}
+            style={[
+              styles.toggle,
+              doneHabitIds.includes(habit.id) ? styles.toggleActive : null,
+              theme ? { backgroundColor: theme.buttonBg, borderColor: theme.buttonBorder } : null,
+            ]}
             onPress={() => onTogglePress?.(habit)}
           >
             {/* 15/04/26: Done status label. */}
-            <Text style={styles.toggleText}>{doneHabitIds.includes(habit.id) ? 'Done ✓' : 'Done'}</Text>
+            <Text style={[styles.toggleText, theme ? { color: theme.text } : null]}>
+              {doneHabitIds.includes(habit.id) ? 'Done ✓' : 'Done'}
+            </Text>
           </Pressable>
         </View>
       ))}
@@ -102,4 +117,3 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
-

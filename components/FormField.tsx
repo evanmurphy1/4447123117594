@@ -1,5 +1,7 @@
 // 14/04/26: Reusable labeled form field.
 import { StyleSheet, Text, TextInput, TextInputProps, View } from 'react-native';
+import { useContext } from 'react';
+import { HabitContext } from '@/app/_layout';
 
 type FormFieldProps = {
   label: string;
@@ -7,13 +9,25 @@ type FormFieldProps = {
 } & TextInputProps;
 
 export default function FormField({ label, error, style, ...inputProps }: FormFieldProps) {
+  const context = useContext(HabitContext);
+  const theme = context?.theme;
   return (
     <View style={styles.wrapper}>
-      <Text style={styles.label}>{label}</Text>
+      <Text style={[styles.label, theme ? { color: theme.textMuted } : null]}>{label}</Text>
       <TextInput
         {...inputProps}
-        placeholderTextColor={inputProps.placeholderTextColor ?? '#6b7280'}
-        style={[styles.input, style]}
+        placeholderTextColor={inputProps.placeholderTextColor ?? (theme ? theme.textMuted : '#6b7280')}
+        style={[
+          styles.input,
+          theme
+            ? {
+                borderColor: theme.border,
+                backgroundColor: theme.panel,
+                color: theme.text,
+              }
+            : null,
+          style,
+        ]}
       />
       {error ? <Text style={styles.error}>{error}</Text> : null}
     </View>

@@ -13,6 +13,7 @@ export default function EditCategory() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const context = useContext(HabitContext);
+  const theme = context?.theme;
 
   const categories = context?.categories ?? [];
   const category = categories.find((c: Category) => c.id === Number(id));
@@ -46,16 +47,34 @@ export default function EditCategory() {
   };
 
   return (
-    <View style={styles.container}>
-      <Pressable style={styles.backButton} onPress={() => router.back()}>
-        <Text style={styles.backButtonText}>Back</Text>
+    <View style={[styles.container, theme ? { backgroundColor: theme.background } : null]}>
+      <Pressable
+        style={[styles.backButton, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}
+        onPress={() => router.back()}
+      >
+        <Text style={[styles.backButtonText, theme ? { color: theme.text } : null]}>Back</Text>
       </Pressable>
-      <Text style={styles.title}>Edit Category</Text>
-      <TextInput style={styles.input} value={name} onChangeText={setName} placeholder="Name" placeholderTextColor="#6b7280" />
-      <TextInput style={styles.input} value={color} onChangeText={setColor} placeholder="Color (hex)" placeholderTextColor="#6b7280" />
+      <Text style={[styles.title, theme ? { color: theme.text } : null]}>Edit Category</Text>
+      <TextInput
+        style={[styles.input, theme ? { borderColor: theme.border, backgroundColor: theme.panel, color: theme.text } : null]}
+        value={name}
+        onChangeText={setName}
+        placeholder="Name"
+        placeholderTextColor={theme ? theme.textMuted : '#6b7280'}
+      />
+      <TextInput
+        style={[styles.input, theme ? { borderColor: theme.border, backgroundColor: theme.panel, color: theme.text } : null]}
+        value={color}
+        onChangeText={setColor}
+        placeholder="Color (hex)"
+        placeholderTextColor={theme ? theme.textMuted : '#6b7280'}
+      />
       {/* 13/04/26: Consistent dark primary action. */}
-      <Pressable style={styles.primaryButton} onPress={saveChanges}>
-        <Text style={styles.primaryButtonText}>Save Changes</Text>
+      <Pressable
+        style={[styles.primaryButton, theme ? { backgroundColor: theme.buttonBg, borderColor: theme.buttonBorder } : null]}
+        onPress={saveChanges}
+      >
+        <Text style={[styles.primaryButtonText, theme ? { color: theme.text } : null]}>Save Changes</Text>
       </Pressable>
       <Pressable style={styles.dangerButton} onPress={deleteCategory}>
         <Text style={styles.dangerButtonText}>Delete Category</Text>
@@ -121,10 +140,16 @@ const styles = StyleSheet.create({
   backButton: {
     alignSelf: 'flex-start',
     marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#3f3f46',
+    backgroundColor: '#1f1f1f',
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
   backButtonText: {
-    color: '#3b82f6',
-    fontSize: 15,
+    color: '#e5e7eb',
+    fontSize: 14,
     fontWeight: '600',
   },
 });

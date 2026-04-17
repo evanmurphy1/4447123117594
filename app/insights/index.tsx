@@ -1,12 +1,13 @@
 // 12/04/26: Shows insights with simple chart.
 import { desc, gte } from 'drizzle-orm';
-import { useEffect, useMemo, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
 import { db } from '@/db/client';
 import { habitLogsTable } from '@/db/schema';
+import { HabitContext } from '../_layout';
 
 // 12/04/26: Defines log row shape.
 type HabitLogRow = {
@@ -67,6 +68,9 @@ const weekStartFor = (isoDate: string) => {
 // 12/04/26: Renders insights screen.
 export default function InsightsIndex() {
   const router = useRouter();
+  const context = useContext(HabitContext);
+  const theme = context?.theme;
+  const isLightMode = context?.themeMode === 'light';
   const [logs, setLogs] = useState<HabitLogRow[]>([]);
   const [mode, setMode] = useState<InsightMode>('daily');
 
@@ -160,43 +164,76 @@ export default function InsightsIndex() {
   ];
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, theme ? { backgroundColor: theme.background } : null]}>
       {/* 16/04/26: Layered backdrop style. */}
-      <View style={styles.bgWash} />
-      <View style={styles.bgStripe} />
+      <View style={[styles.bgWash, theme ? { backgroundColor: theme.wash } : null]} />
+      <View style={[styles.bgStripe, theme ? { backgroundColor: theme.stripe } : null]} />
       <SafeAreaView style={styles.container}>
-        <Pressable style={styles.backRow} onPress={() => router.back()}>
-          <Text style={styles.backText}>Back</Text>
+        <Pressable
+          style={[styles.backRow, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}
+          onPress={() => router.back()}
+        >
+          <Text style={[styles.backText, theme ? { color: theme.text } : null]}>Back</Text>
         </Pressable>
-        <Text style={styles.title}>Insights</Text>
-        <Text style={styles.subtitle}>{subtitle}</Text>
-        <Text style={styles.subtitle}>Total: {total}</Text>
+        <Text style={[styles.title, theme ? { color: theme.text } : null]}>Insights</Text>
+        <Text style={[styles.subtitle, theme ? { color: theme.textMuted } : null]}>{subtitle}</Text>
+        <Text style={[styles.subtitle, theme ? { color: theme.textMuted } : null]}>Total: {total}</Text>
 
         <View style={styles.modeRow}>
-          <Pressable style={modeChip('daily')} onPress={() => setMode('daily')}>
-            <Text style={styles.modeText}>Daily</Text>
+          <Pressable
+            style={[
+              modeChip('daily'),
+              theme
+                ? mode === 'daily'
+                  ? { borderColor: theme.buttonBorder, backgroundColor: theme.buttonBg }
+                  : { borderColor: theme.border, backgroundColor: theme.panel }
+                : null,
+            ]}
+            onPress={() => setMode('daily')}
+          >
+            <Text style={[styles.modeText, theme ? { color: theme.text } : null]}>Daily</Text>
           </Pressable>
-          <Pressable style={modeChip('weekly')} onPress={() => setMode('weekly')}>
-            <Text style={styles.modeText}>Weekly</Text>
+          <Pressable
+            style={[
+              modeChip('weekly'),
+              theme
+                ? mode === 'weekly'
+                  ? { borderColor: theme.buttonBorder, backgroundColor: theme.buttonBg }
+                  : { borderColor: theme.border, backgroundColor: theme.panel }
+                : null,
+            ]}
+            onPress={() => setMode('weekly')}
+          >
+            <Text style={[styles.modeText, theme ? { color: theme.text } : null]}>Weekly</Text>
           </Pressable>
-          <Pressable style={modeChip('monthly')} onPress={() => setMode('monthly')}>
-            <Text style={styles.modeText}>Monthly</Text>
+          <Pressable
+            style={[
+              modeChip('monthly'),
+              theme
+                ? mode === 'monthly'
+                  ? { borderColor: theme.buttonBorder, backgroundColor: theme.buttonBg }
+                  : { borderColor: theme.border, backgroundColor: theme.panel }
+                : null,
+            ]}
+            onPress={() => setMode('monthly')}
+          >
+            <Text style={[styles.modeText, theme ? { color: theme.text } : null]}>Monthly</Text>
           </Pressable>
         </View>
 
-        <View style={styles.chartRow}>
+        <View style={[styles.chartRow, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}>
           {chartData.map((item) => (
             <View key={item.key} style={styles.chartItem}>
               <View
                 style={{
                   width: '100%',
                   height: Math.max(6, (item.total / max) * 140),
-                  backgroundColor: 'rgba(255,255,255,0.22)',
+                  backgroundColor: isLightMode ? 'rgba(37, 99, 235, 0.75)' : theme ? theme.buttonBg : 'rgba(255,255,255,0.22)',
                   borderRadius: 8,
                 }}
               />
-              <Text style={styles.chartLabel}>{item.label}</Text>
-              <Text style={styles.chartValue}>{item.total}</Text>
+              <Text style={[styles.chartLabel, theme ? { color: theme.textMuted } : null]}>{item.label}</Text>
+              <Text style={[styles.chartValue, theme ? { color: theme.text } : null]}>{item.total}</Text>
             </View>
           ))}
         </View>

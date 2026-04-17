@@ -25,6 +25,7 @@ type HabitLogRow = {
 export default function LogsIndex() {
   const router = useRouter();
   const context = useContext(HabitContext);
+  const theme = context?.theme;
   const [logs, setLogs] = useState<HabitLogRow[]>([]);
   const [query, setQuery] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
@@ -66,56 +67,93 @@ export default function LogsIndex() {
   });
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, theme ? { backgroundColor: theme.background } : null]}>
       {/* 16/04/26: Layered backdrop style. */}
-      <View style={styles.bgWash} />
-      <View style={styles.bgStripe} />
+      <View style={[styles.bgWash, theme ? { backgroundColor: theme.wash } : null]} />
+      <View style={[styles.bgStripe, theme ? { backgroundColor: theme.stripe } : null]} />
       <SafeAreaView style={styles.container}>
-        <Pressable style={styles.backButton} onPress={() => router.back()}>
-          <Text style={styles.backButtonText}>Back</Text>
+        <Pressable
+          style={[
+            styles.backButton,
+            theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null,
+          ]}
+          onPress={() => router.back()}
+        >
+          <Text style={[styles.backButtonText, theme ? { color: theme.text } : null]}>Back</Text>
         </Pressable>
-        <Text style={styles.title}>Logs</Text>
+        <Text style={[styles.title, theme ? { color: theme.text } : null]}>Logs</Text>
         {/* 13/04/26: Consistent dark primary action. */}
-        <Pressable style={styles.primaryButton} onPress={() => router.push('/logs/add')}>
-          <Text style={styles.primaryButtonText}>Add Log</Text>
+        <Pressable
+          style={[
+            styles.primaryButton,
+            theme ? { backgroundColor: theme.buttonBg, borderColor: theme.buttonBorder } : null,
+          ]}
+          onPress={() => router.push('/logs/add')}
+        >
+          <Text style={[styles.primaryButtonText, theme ? { color: theme.text } : null]}>Add Log</Text>
         </Pressable>
-        <View style={styles.filterBox}>
+        <View style={[styles.filterBox, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}>
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              theme ? { borderColor: theme.border, backgroundColor: theme.buttonBg, color: theme.text } : null,
+            ]}
             placeholder="Search habit/category/notes"
-            placeholderTextColor="#cbd5e1"
+            placeholderTextColor={theme ? theme.textMuted : '#cbd5e1'}
             value={query}
             onChangeText={setQuery}
           />
           <View style={styles.chipRow}>
             <Pressable
-              style={[styles.chip, selectedCategoryId === null ? styles.chipActive : null]}
+              style={[
+                styles.chip,
+                selectedCategoryId === null ? styles.chipActive : null,
+                theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null,
+                selectedCategoryId === null && theme
+                  ? { borderColor: theme.buttonBorder, backgroundColor: theme.buttonBg }
+                  : null,
+              ]}
               onPress={() => setSelectedCategoryId(null)}
             >
-              <Text style={styles.chipText}>All</Text>
+              <Text style={[styles.chipText, theme ? { color: theme.text } : null]}>All</Text>
             </Pressable>
             {categories.map((category) => (
               <Pressable
                 key={category.id}
-                style={[styles.chip, selectedCategoryId === category.id ? styles.chipActive : null]}
+                style={[
+                  styles.chip,
+                  selectedCategoryId === category.id ? styles.chipActive : null,
+                  theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null,
+                  selectedCategoryId === category.id && theme
+                    ? { borderColor: theme.buttonBorder, backgroundColor: theme.buttonBg }
+                    : null,
+                ]}
                 onPress={() => setSelectedCategoryId(category.id)}
               >
-                <Text style={styles.chipText}>{category.name}</Text>
+                <Text style={[styles.chipText, theme ? { color: theme.text } : null]}>{category.name}</Text>
               </Pressable>
             ))}
           </View>
           <View style={styles.row}>
             <TextInput
-              style={[styles.input, styles.halfInput]}
+              style={[
+                styles.input,
+                styles.halfInput,
+                theme ? { borderColor: theme.border, backgroundColor: theme.buttonBg, color: theme.text } : null,
+              ]}
               placeholder="From YYYY-MM-DD"
-              placeholderTextColor="#cbd5e1"
+              placeholderTextColor={theme ? theme.textMuted : '#cbd5e1'}
               value={fromDate}
               onChangeText={setFromDate}
             />
             <TextInput
-              style={[styles.input, styles.halfInput]}
+              style={[
+                styles.input,
+                styles.halfInput,
+                theme ? { borderColor: theme.border, backgroundColor: theme.buttonBg, color: theme.text } : null,
+              ]}
               placeholder="To YYYY-MM-DD"
-              placeholderTextColor="#cbd5e1"
+              placeholderTextColor={theme ? theme.textMuted : '#cbd5e1'}
               value={toDate}
               onChangeText={setToDate}
             />
@@ -127,13 +165,15 @@ export default function LogsIndex() {
             <Pressable
               key={log.id}
               onPress={() => router.push({ pathname: '/logs/[id]/edit', params: { id: log.id.toString() } })}
-              style={styles.card}
+              style={[styles.card, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}
             >
-              <Text style={styles.cardTitle}>{habitLabel(log.habitId)}</Text>
-              <Text style={styles.cardMeta}>Category: {categoryLabel(log.categoryId)}</Text>
-              <Text style={styles.cardMeta}>Date: {log.logDate}</Text>
-              <Text style={styles.cardMeta}>Metric: {log.metricValue}</Text>
-              <Text style={styles.cardMeta}>Notes: {log.notes || 'None'}</Text>
+              <Text style={[styles.cardTitle, theme ? { color: theme.text } : null]}>{habitLabel(log.habitId)}</Text>
+              <Text style={[styles.cardMeta, theme ? { color: theme.textMuted } : null]}>
+                Category: {categoryLabel(log.categoryId)}
+              </Text>
+              <Text style={[styles.cardMeta, theme ? { color: theme.textMuted } : null]}>Date: {log.logDate}</Text>
+              <Text style={[styles.cardMeta, theme ? { color: theme.textMuted } : null]}>Metric: {log.metricValue}</Text>
+              <Text style={[styles.cardMeta, theme ? { color: theme.textMuted } : null]}>Notes: {log.notes || 'None'}</Text>
             </Pressable>
           ))}
         </ScrollView>

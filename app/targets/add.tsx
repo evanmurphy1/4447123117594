@@ -11,6 +11,7 @@ import { Habit, HabitContext } from '../_layout';
 export default function AddTarget() {
   const router = useRouter();
   const context = useContext(HabitContext);
+  const theme = context?.theme;
 
   const habits = context?.habits ?? [];
   const [periodType, setPeriodType] = useState<'weekly' | 'monthly'>('weekly');
@@ -32,37 +33,43 @@ export default function AddTarget() {
   };
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, theme ? { backgroundColor: theme.background } : null]}>
       {/* 16/04/26: Layered backdrop style. */}
-      <View style={styles.bgWash} />
-      <View style={styles.bgStripe} />
+      <View style={[styles.bgWash, theme ? { backgroundColor: theme.wash } : null]} />
+      <View style={[styles.bgStripe, theme ? { backgroundColor: theme.stripe } : null]} />
       <View style={styles.container}>
-        <Pressable style={styles.backButton} onPress={() => router.back()}>
-          <Text style={styles.backButtonText}>Back</Text>
+        <Pressable
+          style={[
+            styles.backButton,
+            theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null,
+          ]}
+          onPress={() => router.back()}
+        >
+          <Text style={[styles.backButtonText, theme ? { color: theme.text } : null]}>Back</Text>
         </Pressable>
-        <Text style={styles.title}>Add Target</Text>
+        <Text style={[styles.title, theme ? { color: theme.text } : null]}>Add Target</Text>
 
-        <Text style={styles.label}>Period</Text>
+        <Text style={[styles.label, theme ? { color: theme.textMuted } : null]}>Period</Text>
         <View style={styles.row}>
           <Pressable onPress={() => setPeriodType('weekly')}>
-            <Text style={{ color: periodType === 'weekly' ? '#f8fafc' : '#cbd5e1' }}>Weekly</Text>
+            <Text style={{ color: periodType === 'weekly' ? theme?.text ?? '#f8fafc' : theme?.textMuted ?? '#cbd5e1' }}>Weekly</Text>
           </Pressable>
           <Pressable onPress={() => setPeriodType('monthly')}>
-            <Text style={{ color: periodType === 'monthly' ? '#f8fafc' : '#cbd5e1' }}>Monthly</Text>
+            <Text style={{ color: periodType === 'monthly' ? theme?.text ?? '#f8fafc' : theme?.textMuted ?? '#cbd5e1' }}>Monthly</Text>
           </Pressable>
         </View>
 
-        <Text style={styles.label}>Habit (optional)</Text>
+        <Text style={[styles.label, theme ? { color: theme.textMuted } : null]}>Habit (optional)</Text>
         <View style={styles.chipRow}>
           <Pressable
             onPress={() => setHabitId(null)}
             style={{
               ...styles.chip,
-              borderColor: habitId === null ? 'rgba(255,255,255,0.34)' : 'rgba(255,255,255,0.22)',
-              backgroundColor: habitId === null ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)',
+              borderColor: habitId === null ? theme?.buttonBorder ?? 'rgba(255,255,255,0.34)' : theme?.border ?? 'rgba(255,255,255,0.22)',
+              backgroundColor: habitId === null ? theme?.buttonBg ?? 'rgba(255,255,255,0.2)' : theme?.panel ?? 'rgba(255,255,255,0.1)',
             }}
           >
-            <Text style={styles.chipText}>All Habits</Text>
+            <Text style={[styles.chipText, theme ? { color: theme.text } : null]}>All Habits</Text>
           </Pressable>
           {habits.map((habit: Habit) => (
             <Pressable
@@ -70,26 +77,37 @@ export default function AddTarget() {
               onPress={() => setHabitId(habit.id)}
               style={{
                 ...styles.chip,
-                borderColor: habitId === habit.id ? 'rgba(255,255,255,0.34)' : 'rgba(255,255,255,0.22)',
-                backgroundColor: habitId === habit.id ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)',
+                borderColor:
+                  habitId === habit.id ? theme?.buttonBorder ?? 'rgba(255,255,255,0.34)' : theme?.border ?? 'rgba(255,255,255,0.22)',
+                backgroundColor:
+                  habitId === habit.id ? theme?.buttonBg ?? 'rgba(255,255,255,0.2)' : theme?.panel ?? 'rgba(255,255,255,0.1)',
               }}
             >
-              <Text style={styles.chipText}>{habit.name}</Text>
+              <Text style={[styles.chipText, theme ? { color: theme.text } : null]}>{habit.name}</Text>
             </Pressable>
           ))}
         </View>
 
         <TextInput
-          style={styles.input}
+          style={[
+            styles.input,
+            theme ? { borderColor: theme.border, backgroundColor: theme.panel, color: theme.text } : null,
+          ]}
           placeholder="Target value"
-          placeholderTextColor="#cbd5e1"
+          placeholderTextColor={theme ? theme.textMuted : '#cbd5e1'}
           value={targetValue}
           onChangeText={setTargetValue}
           keyboardType="numeric"
         />
         {/* 13/04/26: Consistent dark primary action. */}
-        <Pressable style={styles.primaryButton} onPress={saveTarget}>
-          <Text style={styles.primaryButtonText}>Save Target</Text>
+        <Pressable
+          style={[
+            styles.primaryButton,
+            theme ? { backgroundColor: theme.buttonBg, borderColor: theme.buttonBorder } : null,
+          ]}
+          onPress={saveTarget}
+        >
+          <Text style={[styles.primaryButtonText, theme ? { color: theme.text } : null]}>Save Target</Text>
         </Pressable>
       </View>
     </View>
