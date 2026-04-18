@@ -1,12 +1,22 @@
 // 08/04/26: change to habit
 import { eq } from 'drizzle-orm';
 import * as FileSystem from 'expo-file-system/legacy';
+import * as Notifications from 'expo-notifications';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { createContext, useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 
 import { db } from '@/db/client';
 import { authSessionTable, categoriesTable, habitsTable, usersTable } from '@/db/schema';
 import { seedHabitsIfEmpty } from '@/db/seed';
+
+// 18/04/26: Show foreground notifications.
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 export type Habit = {
   id: number;
