@@ -24,6 +24,8 @@ export default function TodayViewNew({
 }: TodayViewNewProps) {
   const context = useContext(HabitContext);
   const theme = context?.theme;
+  const categories = context?.categories ?? [];
+  const colorForHabit = (categoryId: number) => categories.find((item) => item.id === categoryId)?.color ?? '#94a3b8';
 
   return (
     <View style={styles.container}>
@@ -33,6 +35,7 @@ export default function TodayViewNew({
           style={[styles.card, theme ? { backgroundColor: theme.panel, borderColor: theme.border } : null]}
         >
           <Pressable style={styles.left} onPress={() => onHabitPress?.(habit)}>
+            <View style={[styles.dot, { backgroundColor: colorForHabit(habit.categoryId) }]} />
             <View style={styles.textWrap}>
               <Text style={[styles.name, theme ? { color: theme.text } : null]}>{habit.name}</Text>
               {(streaks[habit.id] ?? 0) > 0 ? (
@@ -82,6 +85,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+  },
+  dot: {
+    width: 10,
+    height: 10,
+    borderRadius: 999,
+    marginRight: 10,
   },
   textWrap: {
     flex: 1,

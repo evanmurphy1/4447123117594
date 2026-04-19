@@ -1,5 +1,6 @@
 // 11/04/26: Lists categories with edit actions.
 import { useRouter } from 'expo-router';
+import { eq } from 'drizzle-orm';
 import { useCallback, useContext, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -21,7 +22,9 @@ export default function CategoriesIndex() {
       let active = true;
 
       const load = async () => {
-        const rows = await db.select().from(categoriesTable);
+        const userId = context?.user?.id;
+        if (!userId) return;
+        const rows = await db.select().from(categoriesTable).where(eq(categoriesTable.userId, userId));
         if (!active) return;
         setCategories(rows as Category[]);
         context?.setCategories(rows as Category[]);
@@ -62,15 +65,17 @@ export default function CategoriesIndex() {
           <Text style={[styles.primaryButtonText, theme ? { color: theme.text } : null]}>Add Category</Text>
         </Pressable>
         {/* 14/04/26: Scroll long category entries. */}
-        <ScrollView style={styles.list} contentContainerStyle={{ paddingBottom: 120 }}>
+        <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
           {categories.map((category) => (
             <Pressable
               key={category.id}
               onPress={() => router.push({ pathname: '/categories/[id]/edit', params: { id: category.id.toString() } })}
               style={[styles.card, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}
             >
-              <Text style={[styles.cardTitle, theme ? { color: theme.text } : null]}>{category.name}</Text>
-              <Text style={[styles.cardMeta, theme ? { color: theme.textMuted } : null]}>Color: {category.color}</Text>
+              <View style={styles.cardRow}>
+                <View style={[styles.colorDot, { backgroundColor: category.color }]} />
+                <Text style={[styles.cardTitle, theme ? { color: theme.text } : null]}>{category.name}</Text>
+              </View>
             </Pressable>
           ))}
         </ScrollView>
@@ -116,6 +121,9 @@ const styles = StyleSheet.create({
   },
   list: {
     marginTop: 12,
+  },
+  listContent: {
+    paddingBottom: 120,
     gap: 10,
   },
   card: {
@@ -125,14 +133,20 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: 'rgba(255,255,255,0.1)',
   },
+  cardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  colorDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 999,
+  },
   cardTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: '#f8fafc',
-  },
-  cardMeta: {
-    color: '#cbd5e1',
-    marginTop: 2,
   },
   primaryButton: {
     alignSelf: 'flex-start',

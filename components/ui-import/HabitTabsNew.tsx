@@ -27,8 +27,7 @@ export default function HabitTabsNew({ filters, activeTab, onChange }: HabitTabs
               active ? styles.activePill : styles.inactivePill,
               theme
                 ? {
-                    borderColor: theme.border,
-                    backgroundColor: active ? theme.buttonBg : theme.panel,
+                    borderColor: active ? '#57e3e6' : '#2d8f96',
                   }
                 : null,
             ]}
@@ -53,29 +52,34 @@ export default function HabitTabsNew({ filters, activeTab, onChange }: HabitTabs
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
+    width: '100%',
     gap: 8,
     marginBottom: 16,
   },
   pill: {
+    flex: 1,
     borderWidth: 1,
     borderColor: '#3f3f46',
     borderRadius: 999,
-    paddingHorizontal: 16,
+    paddingHorizontal: 8,
     paddingVertical: 8,
+    alignItems: 'center',
   },
   activePill: {
-    backgroundColor: '#2f2f2f',
+    backgroundColor: '#14c8d4',
+    borderColor: '#57e3e6',
   },
   inactivePill: {
-    backgroundColor: '#1f1f1f',
+    backgroundColor: '#0d6f78',
+    borderColor: '#2d8f96',
   },
   label: {
     fontWeight: '600',
   },
   activeLabel: {
-    color: '#e5e7eb',
+    color: '#06242a',
   },
   inactiveLabel: {
-    color: '#9ca3af',
+    color: '#d6fcff',
   },
 });

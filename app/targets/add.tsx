@@ -19,10 +19,13 @@ export default function AddTarget() {
   const [habitId, setHabitId] = useState<number | null>(habits[0]?.id ?? null);
 
   const saveTarget = async () => {
+    const userId = context?.user?.id;
+    if (!userId) return;
     const value = Number(targetValue);
     if (!Number.isFinite(value) || value <= 0) return;
 
     await db.insert(targetsTable).values({
+      userId,
       periodType,
       targetValue: value,
       habitId,

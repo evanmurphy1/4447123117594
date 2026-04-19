@@ -1,6 +1,6 @@
 // 14/04/26: Search and filter logs.
 // 11/04/26: Lists habit logs with filters.
-import { desc } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 import { useRouter } from 'expo-router';
 import { useCallback, useContext, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
@@ -37,7 +37,13 @@ export default function LogsIndex() {
       let active = true;
 
       const load = async () => {
-        const rows = await db.select().from(habitLogsTable).orderBy(desc(habitLogsTable.logDate));
+        const userId = context?.user?.id;
+        if (!userId) return;
+        const rows = await db
+          .select()
+          .from(habitLogsTable)
+          .where(eq(habitLogsTable.userId, userId))
+          .orderBy(desc(habitLogsTable.logDate));
         if (!active) return;
         setLogs(rows as HabitLogRow[]);
       };
@@ -47,7 +53,7 @@ export default function LogsIndex() {
       return () => {
         active = false;
       };
-    }, [])
+    }, [context?.user?.id])
   );
 
   const habits = context?.habits ?? [];
@@ -56,6 +62,8 @@ export default function LogsIndex() {
     habits.find((h: Habit) => h.id === habitId)?.name ?? 'Unknown habit';
   const categoryLabel = (categoryId: number) =>
     categories.find((c) => c.id === categoryId)?.name ?? 'Unknown category';
+  const categoryColor = (categoryId: number) =>
+    categories.find((c) => c.id === categoryId)?.color ?? '#94a3b8';
 
   const filteredLogs = logs.filter((log) => {
     const text = `${habitLabel(log.habitId)} ${categoryLabel(log.categoryId)} ${log.notes ?? ''}`.toLowerCase();
@@ -115,7 +123,9 @@ export default function LogsIndex() {
               ]}
               onPress={() => setSelectedCategoryId(null)}
             >
-              <Text style={[styles.chipText, theme ? { color: theme.text } : null]}>All</Text>
+              <Text style={[styles.chipText, theme ? { color: theme.text } : null]}>
+                {selectedCategoryId === null ? '✓ All' : 'All'}
+              </Text>
             </Pressable>
             {categories.map((category) => (
               <Pressable
@@ -130,7 +140,9 @@ export default function LogsIndex() {
                 ]}
                 onPress={() => setSelectedCategoryId(category.id)}
               >
-                <Text style={[styles.chipText, theme ? { color: theme.text } : null]}>{category.name}</Text>
+                <Text style={[styles.chipText, theme ? { color: theme.text } : null]}>
+                  {selectedCategoryId === category.id ? `✓ ${category.name}` : category.name}
+                </Text>
               </Pressable>
             ))}
           </View>
@@ -160,7 +172,7 @@ export default function LogsIndex() {
           </View>
         </View>
         {/* 14/04/26: Scroll long log entries. */}
-        <ScrollView style={styles.list} contentContainerStyle={{ paddingBottom: 120 }}>
+        <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
           {filteredLogs.map((log) => (
             <Pressable
               key={log.id}
@@ -168,9 +180,12 @@ export default function LogsIndex() {
               style={[styles.card, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}
             >
               <Text style={[styles.cardTitle, theme ? { color: theme.text } : null]}>{habitLabel(log.habitId)}</Text>
-              <Text style={[styles.cardMeta, theme ? { color: theme.textMuted } : null]}>
-                Category: {categoryLabel(log.categoryId)}
-              </Text>
+              <View style={styles.categoryRow}>
+                <View style={[styles.colorDot, { backgroundColor: categoryColor(log.categoryId) }]} />
+                <Text style={[styles.cardMeta, theme ? { color: theme.textMuted } : null]}>
+                  {categoryLabel(log.categoryId)}
+                </Text>
+              </View>
               <Text style={[styles.cardMeta, theme ? { color: theme.textMuted } : null]}>Date: {log.logDate}</Text>
               <Text style={[styles.cardMeta, theme ? { color: theme.textMuted } : null]}>Metric: {log.metricValue}</Text>
               <Text style={[styles.cardMeta, theme ? { color: theme.textMuted } : null]}>Notes: {log.notes || 'None'}</Text>
@@ -219,6 +234,9 @@ const styles = StyleSheet.create({
   },
   list: {
     marginTop: 12,
+  },
+  listContent: {
+    paddingBottom: 120,
     gap: 10,
   },
   filterBox: {
@@ -284,6 +302,17 @@ const styles = StyleSheet.create({
   cardMeta: {
     color: '#cbd5e1',
     marginTop: 2,
+  },
+  categoryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 2,
+  },
+  colorDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 999,
   },
   primaryButton: {
     alignSelf: 'flex-start',

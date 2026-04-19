@@ -6,8 +6,7 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { createContext, useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 
 import { db } from '@/db/client';
-import { authSessionTable, categoriesTable, habitsTable, usersTable } from '@/db/schema';
-import { seedHabitsIfEmpty } from '@/db/seed';
+import { authSessionTable, categoriesTable, habitLogsTable, habitsTable, targetsTable, usersTable } from '@/db/schema';
 
 // 18/04/26: Show foreground notifications.
 Notifications.setNotificationHandler({
@@ -115,16 +114,7 @@ export default function RootLayout() {
       }
       setThemeReady(true);
 
-      await seedHabitsIfEmpty();
-      await db.update(habitsTable).set({ metricType: 'count' });
-      const [habitRows, categoryRows, sessions] = await Promise.all([
-        db.select().from(habitsTable),
-        db.select().from(categoriesTable),
-        db.select().from(authSessionTable),
-      ]);
-      setHabits(habitRows as Habit[]);
-      setCategories(categoryRows as Category[]);
-
+      const sessions = await db.select().from(authSessionTable);
       if (sessions.length > 0) {
         const active = sessions[0];
         const users = await db.select().from(usersTable).where(eq(usersTable.id, active.userId));
@@ -134,9 +124,13 @@ export default function RootLayout() {
         } else {
           await db.delete(authSessionTable);
           setUser(null);
+          setHabits([]);
+          setCategories([]);
         }
       } else {
         setUser(null);
+        setHabits([]);
+        setCategories([]);
       }
 
       setAuthReady(true);
@@ -144,6 +138,30 @@ export default function RootLayout() {
 
     loadData();
   }, []);
+
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (!user) {
+        setHabits([]);
+        setCategories([]);
+        return;
+      }
+
+      // 18/04/26: Adopt legacy rows for first scoped login.
+      await db.update(categoriesTable).set({ userId: user.id }).where(eq(categoriesTable.userId, 0));
+      await db.update(habitsTable).set({ userId: user.id }).where(eq(habitsTable.userId, 0));
+      await db.update(habitLogsTable).set({ userId: user.id }).where(eq(habitLogsTable.userId, 0));
+      await db.update(targetsTable).set({ userId: user.id }).where(eq(targetsTable.userId, 0));
+
+      const [habitRows, categoryRows] = await Promise.all([
+        db.select().from(habitsTable).where(eq(habitsTable.userId, user.id)),
+        db.select().from(categoriesTable).where(eq(categoriesTable.userId, user.id)),
+      ]);
+      setHabits(habitRows as Habit[]);
+      setCategories(categoryRows as Category[]);
+    };
+    loadUserData();
+  }, [user]);
 
   useEffect(() => {
     if (!themeReady) return;

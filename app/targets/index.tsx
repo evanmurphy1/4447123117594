@@ -1,5 +1,5 @@
 // 11/04/26: Lists targets with progress summary.
-import { desc } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 import { useRouter } from 'expo-router';
 import { useCallback, useContext, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
@@ -67,8 +67,14 @@ export default function TargetsIndex() {
       let active = true;
 
       const load = async () => {
-        const rows = await db.select().from(targetsTable).orderBy(desc(targetsTable.id));
-        const logRows = await db.select().from(habitLogsTable);
+        const userId = context?.user?.id;
+        if (!userId) return;
+        const rows = await db
+          .select()
+          .from(targetsTable)
+          .where(eq(targetsTable.userId, userId))
+          .orderBy(desc(targetsTable.id));
+        const logRows = await db.select().from(habitLogsTable).where(eq(habitLogsTable.userId, userId));
         if (!active) return;
         setTargets(rows as TargetRow[]);
         setLogs(logRows as HabitLogRow[]);
@@ -79,7 +85,7 @@ export default function TargetsIndex() {
       return () => {
         active = false;
       };
-    }, [])
+    }, [context?.user?.id])
   );
 
   const habits = context?.habits ?? [];
@@ -144,7 +150,8 @@ export default function TargetsIndex() {
           {targets.map((target) => {
             const current = progressForTarget(target);
             const remaining = Math.max(0, target.targetValue - current);
-            const exceededBy = Math.max(0, current - target.targetValue);
+            const fillRatio = target.targetValue > 0 ? Math.min(1, current / target.targetValue) : 0;
+            const fillWidth = `${fillRatio * 100}%`;
             const status = statusFor(current, target.targetValue);
             return (
               <Pressable
@@ -155,12 +162,26 @@ export default function TargetsIndex() {
                 <Text style={[styles.cardTitle, theme ? { color: theme.text } : null]}>{habitLabel(target.habitId)}</Text>
                 <Text style={[styles.cardMeta, theme ? { color: theme.textMuted } : null]}>Period: {target.periodType}</Text>
                 <Text style={[styles.cardMeta, theme ? { color: theme.textMuted } : null]}>Target: {target.targetValue}</Text>
-                <Text style={[styles.cardMeta, theme ? { color: theme.textMuted } : null]}>Progress: {current}</Text>
-                <Text style={[styles.cardMeta, theme ? { color: theme.textMuted } : null]}>Remaining: {remaining}</Text>
-                <Text style={[styles.cardMeta, theme ? { color: theme.textMuted } : null]}>Status: {status}</Text>
-                {status === 'Exceeded' ? (
-                  <Text style={[styles.cardMeta, theme ? { color: theme.textMuted } : null]}>Exceeded by: {exceededBy}</Text>
-                ) : null}
+                <View style={styles.progressRow}>
+                  <Text style={[styles.progressSide, theme ? { color: theme.text } : null]}>{current}</Text>
+                  <Text style={[styles.progressSide, theme ? { color: theme.textMuted } : null]}>{remaining}</Text>
+                </View>
+                <View style={[styles.progressTrack, theme ? { borderColor: theme.border } : null]}>
+                  <View
+                    style={[
+                      styles.progressFill,
+                      { width: fillWidth },
+                      status === 'Exceeded'
+                        ? { backgroundColor: '#60a5fa' }
+                        : status === 'Met'
+                          ? { backgroundColor: '#34d399' }
+                          : { backgroundColor: '#2dd4bf' },
+                    ]}
+                  />
+                </View>
+                <Text style={[styles.cardMeta, theme ? { color: theme.textMuted } : null]}>
+                  {Math.min(current, target.targetValue)}/{target.targetValue}
+                </Text>
               </Pressable>
             );
           })}
@@ -224,6 +245,31 @@ const styles = StyleSheet.create({
   cardMeta: {
     color: '#cbd5e1',
     marginTop: 2,
+  },
+  progressRow: {
+    marginTop: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  progressSide: {
+    color: '#f8fafc',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  progressTrack: {
+    marginTop: 6,
+    height: 10,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.24)',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 999,
+    backgroundColor: '#2dd4bf',
   },
   primaryButton: {
     alignSelf: 'flex-start',

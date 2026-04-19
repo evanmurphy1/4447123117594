@@ -57,10 +57,13 @@ export default function AddLog() {
   const categoryId = habits.find((h: Habit) => h.id === habitId)?.categoryId ?? 0;
 
   const saveLog = async () => {
+    const userId = context?.user?.id;
+    if (!userId) return;
     const value = Number(metricValue);
     if (!habitId || !categoryId || !logDate.trim() || !Number.isFinite(value)) return;
 
     await db.insert(habitLogsTable).values({
+      userId,
       habitId,
       categoryId,
       logDate: logDate.trim(),

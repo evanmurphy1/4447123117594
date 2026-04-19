@@ -6,7 +6,7 @@ import * as Sharing from 'expo-sharing';
 import { useRouter } from 'expo-router';
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { Alert, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { HabitContext } from '@/app/_layout';
 import { db } from '@/db/client';
@@ -93,6 +93,10 @@ export default function AccountScreen() {
 
   const deleteProfile = async () => {
     if (!context || !user) return;
+    await db.delete(habitLogsTable).where(eq(habitLogsTable.userId, user.id));
+    await db.delete(targetsTable).where(eq(targetsTable.userId, user.id));
+    await db.delete(habitsTable).where(eq(habitsTable.userId, user.id));
+    await db.delete(categoriesTable).where(eq(categoriesTable.userId, user.id));
     await db.delete(authSessionTable);
     await db.delete(usersTable).where(eq(usersTable.id, user.id));
     context.setUser(null);
@@ -104,11 +108,12 @@ export default function AccountScreen() {
 
   // 17/04/26: Build csv content.
   const buildCsv = async () => {
+    if (!user) return '';
     const [categories, habits, logs, targets] = await Promise.all([
-      db.select().from(categoriesTable),
-      db.select().from(habitsTable),
-      db.select().from(habitLogsTable),
-      db.select().from(targetsTable),
+      db.select().from(categoriesTable).where(eq(categoriesTable.userId, user.id)),
+      db.select().from(habitsTable).where(eq(habitsTable.userId, user.id)),
+      db.select().from(habitLogsTable).where(eq(habitLogsTable.userId, user.id)),
+      db.select().from(targetsTable).where(eq(targetsTable.userId, user.id)),
     ]);
 
     const rows: string[] = [];
@@ -370,144 +375,171 @@ export default function AccountScreen() {
         >
           <Text style={[styles.backButtonText, theme ? { color: theme.text } : null]}>Back</Text>
         </Pressable>
-        <Text style={[styles.title, theme ? { color: theme.text } : null]}>Account</Text>
-        {user ? (
-          <>
-            <Text style={[styles.meta, theme ? { color: theme.textMuted } : null]}>Name: {user.name}</Text>
-            <Text style={[styles.meta, theme ? { color: theme.textMuted } : null]}>Email: {user.email}</Text>
-            <Pressable
-              style={[
-                styles.primaryButton,
-                theme ? { backgroundColor: theme.buttonBg, borderColor: theme.buttonBorder } : null,
-              ]}
-              onPress={toggleTheme}
-            >
-              <Text style={[styles.primaryButtonText, theme ? { color: theme.text } : null]}>
-                {themeMode === 'dark' ? 'Switch To Light' : 'Switch To Dark'}
-              </Text>
-            </Pressable>
-            <Pressable
-              style={[
-                styles.primaryButton,
-                theme ? { backgroundColor: theme.buttonBg, borderColor: theme.buttonBorder } : null,
-              ]}
-              onPress={reminderAction}
-            >
-              <Text style={[styles.primaryButtonText, theme ? { color: theme.text } : null]}>{reminderActionLabel}</Text>
-            </Pressable>
-            {/* 18/04/26: Reminder status text. */}
-            <Text style={[styles.meta, theme ? { color: theme.textMuted } : null]}>
-              Reminder: {reminderEnabled ? `On at ${formatTime(timeFromMinutes(reminderMinutes).hour, timeFromMinutes(reminderMinutes).minute)}` : 'Off'}
-            </Text>
-            {/* 18/04/26: Reminder time picker buttons. */}
-            <View style={styles.timeWrap}>
-              <View style={[styles.timeValue, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}>
-                <Text style={[styles.timeValueText, theme ? { color: theme.text } : null]}>
-                  {formatTime(timeFromMinutes(reminderMinutes).hour, timeFromMinutes(reminderMinutes).minute)}
+        <Text style={[styles.title, theme ? { color: theme.text } : null]}>Settings</Text>
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          {user ? (
+            <>
+              <View style={[styles.section, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}>
+                <Text style={[styles.sectionTitle, theme ? { color: theme.text } : null]}>Profile</Text>
+                <Text style={[styles.meta, theme ? { color: theme.textMuted } : null]}>Name: {user.name}</Text>
+                <Text style={[styles.meta, theme ? { color: theme.textMuted } : null]}>Email: {user.email}</Text>
+              </View>
+
+              <View style={[styles.section, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}>
+                <Text style={[styles.sectionTitle, theme ? { color: theme.text } : null]}>Appearance</Text>
+                <Pressable
+                  style={[
+                    styles.primaryButton,
+                    styles.sectionButton,
+                    theme ? { backgroundColor: theme.buttonBg, borderColor: theme.buttonBorder } : null,
+                  ]}
+                  onPress={toggleTheme}
+                >
+                  <Text style={[styles.primaryButtonText, theme ? { color: theme.text } : null]}>
+                    {themeMode === 'dark' ? 'Switch To Light' : 'Switch To Dark'}
+                  </Text>
+                </Pressable>
+              </View>
+
+              <View style={[styles.section, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}>
+                <Text style={[styles.sectionTitle, theme ? { color: theme.text } : null]}>Reminders</Text>
+                <Pressable
+                  style={[
+                    styles.primaryButton,
+                    styles.sectionButton,
+                    theme ? { backgroundColor: theme.buttonBg, borderColor: theme.buttonBorder } : null,
+                  ]}
+                  onPress={reminderAction}
+                >
+                  <Text style={[styles.primaryButtonText, theme ? { color: theme.text } : null]}>{reminderActionLabel}</Text>
+                </Pressable>
+                <Text style={[styles.meta, styles.sectionMeta, theme ? { color: theme.textMuted } : null]}>
+                  Reminder: {reminderEnabled ? `On at ${formatTime(timeFromMinutes(reminderMinutes).hour, timeFromMinutes(reminderMinutes).minute)}` : 'Off'}
                 </Text>
+                <View style={styles.timeWrap}>
+                  <View style={[styles.timeValue, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}>
+                    <Text style={[styles.timeValueText, theme ? { color: theme.text } : null]}>
+                      {formatTime(timeFromMinutes(reminderMinutes).hour, timeFromMinutes(reminderMinutes).minute)}
+                    </Text>
+                  </View>
+                  <View style={styles.timeRow}>
+                    <Pressable
+                      style={[styles.timeChip, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}
+                      onPress={() => shiftReminderTime(-60)}
+                    >
+                      <Text style={[styles.timeChipText, theme ? { color: theme.text } : null]}>-1h</Text>
+                    </Pressable>
+                    <Pressable
+                      style={[styles.timeChip, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}
+                      onPress={() => shiftReminderTime(-15)}
+                    >
+                      <Text style={[styles.timeChipText, theme ? { color: theme.text } : null]}>-15m</Text>
+                    </Pressable>
+                    <Pressable
+                      style={[styles.timeChip, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}
+                      onPress={() => shiftReminderTime(-1)}
+                    >
+                      <Text style={[styles.timeChipText, theme ? { color: theme.text } : null]}>-1m</Text>
+                    </Pressable>
+                  </View>
+                  <View style={styles.timeRow}>
+                    <Pressable
+                      style={[styles.timeChip, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}
+                      onPress={() => shiftReminderTime(60)}
+                    >
+                      <Text style={[styles.timeChipText, theme ? { color: theme.text } : null]}>+1h</Text>
+                    </Pressable>
+                    <Pressable
+                      style={[styles.timeChip, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}
+                      onPress={() => shiftReminderTime(15)}
+                    >
+                      <Text style={[styles.timeChipText, theme ? { color: theme.text } : null]}>+15m</Text>
+                    </Pressable>
+                    <Pressable
+                      style={[styles.timeChip, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}
+                      onPress={() => shiftReminderTime(1)}
+                    >
+                      <Text style={[styles.timeChipText, theme ? { color: theme.text } : null]}>+1m</Text>
+                    </Pressable>
+                  </View>
+                </View>
+                <Pressable
+                  style={[
+                    styles.primaryButton,
+                    styles.sectionButton,
+                    theme ? { backgroundColor: theme.buttonBg, borderColor: theme.buttonBorder } : null,
+                  ]}
+                  onPress={sendTestReminder}
+                >
+                  <Text style={[styles.primaryButtonText, theme ? { color: theme.text } : null]}>Test in 10s</Text>
+                </Pressable>
               </View>
-              <View style={styles.timeRow}>
+
+              <View style={[styles.section, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}>
+                <Text style={[styles.sectionTitle, theme ? { color: theme.text } : null]}>Data</Text>
                 <Pressable
-                  style={[styles.timeChip, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}
-                  onPress={() => shiftReminderTime(-60)}
+                  style={[
+                    styles.primaryButton,
+                    styles.sectionButton,
+                    theme ? { backgroundColor: theme.buttonBg, borderColor: theme.buttonBorder } : null,
+                  ]}
+                  onPress={exportCsv}
                 >
-                  <Text style={[styles.timeChipText, theme ? { color: theme.text } : null]}>-1h</Text>
-                </Pressable>
-                <Pressable
-                  style={[styles.timeChip, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}
-                  onPress={() => shiftReminderTime(-15)}
-                >
-                  <Text style={[styles.timeChipText, theme ? { color: theme.text } : null]}>-15m</Text>
-                </Pressable>
-                <Pressable
-                  style={[styles.timeChip, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}
-                  onPress={() => shiftReminderTime(-1)}
-                >
-                  <Text style={[styles.timeChipText, theme ? { color: theme.text } : null]}>-1m</Text>
+                  <Text style={[styles.primaryButtonText, theme ? { color: theme.text } : null]}>Export CSV</Text>
                 </Pressable>
               </View>
-              <View style={styles.timeRow}>
+
+              <View style={[styles.section, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}>
+                <Text style={[styles.sectionTitle, theme ? { color: theme.text } : null]}>Account</Text>
                 <Pressable
-                  style={[styles.timeChip, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}
-                  onPress={() => shiftReminderTime(60)}
+                  style={[
+                    styles.primaryButton,
+                    styles.sectionButton,
+                    theme ? { backgroundColor: theme.buttonBg, borderColor: theme.buttonBorder } : null,
+                  ]}
+                  onPress={logout}
                 >
-                  <Text style={[styles.timeChipText, theme ? { color: theme.text } : null]}>+1h</Text>
+                  <Text style={[styles.primaryButtonText, theme ? { color: theme.text } : null]}>Logout</Text>
                 </Pressable>
                 <Pressable
-                  style={[styles.timeChip, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}
-                  onPress={() => shiftReminderTime(15)}
+                  style={[styles.dangerButton, styles.sectionButton]}
+                  onPress={() =>
+                    Alert.alert('Delete profile?', 'This cannot be undone.', [
+                      { text: 'Cancel', style: 'cancel' },
+                      { text: 'Delete', style: 'destructive', onPress: deleteProfile },
+                    ])
+                  }
                 >
-                  <Text style={[styles.timeChipText, theme ? { color: theme.text } : null]}>+15m</Text>
-                </Pressable>
-                <Pressable
-                  style={[styles.timeChip, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}
-                  onPress={() => shiftReminderTime(1)}
-                >
-                  <Text style={[styles.timeChipText, theme ? { color: theme.text } : null]}>+1m</Text>
+                  <Text style={styles.dangerButtonText}>Delete Profile</Text>
                 </Pressable>
               </View>
+            </>
+          ) : (
+            <View style={[styles.section, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}>
+              <Text style={[styles.sectionTitle, theme ? { color: theme.text } : null]}>Account</Text>
+              <Pressable
+                style={[
+                  styles.primaryButton,
+                  styles.sectionButton,
+                  theme ? { backgroundColor: theme.buttonBg, borderColor: theme.buttonBorder } : null,
+                ]}
+                onPress={() => router.push('/auth/login')}
+              >
+                <Text style={[styles.primaryButtonText, theme ? { color: theme.text } : null]}>Login</Text>
+              </Pressable>
+              <Pressable
+                style={[
+                  styles.primaryButton,
+                  styles.sectionButton,
+                  theme ? { backgroundColor: theme.buttonBg, borderColor: theme.buttonBorder } : null,
+                ]}
+                onPress={() => router.push('/auth/register')}
+              >
+                <Text style={[styles.primaryButtonText, theme ? { color: theme.text } : null]}>Register</Text>
+              </Pressable>
             </View>
-            <Pressable
-              style={[
-                styles.primaryButton,
-                theme ? { backgroundColor: theme.buttonBg, borderColor: theme.buttonBorder } : null,
-              ]}
-              onPress={sendTestReminder}
-            >
-              <Text style={[styles.primaryButtonText, theme ? { color: theme.text } : null]}>Test in 10s</Text>
-            </Pressable>
-            <Pressable
-              style={[
-                styles.primaryButton,
-                theme ? { backgroundColor: theme.buttonBg, borderColor: theme.buttonBorder } : null,
-              ]}
-              onPress={logout}
-            >
-              <Text style={[styles.primaryButtonText, theme ? { color: theme.text } : null]}>Logout</Text>
-            </Pressable>
-            <Pressable
-              style={[
-                styles.primaryButton,
-                theme ? { backgroundColor: theme.buttonBg, borderColor: theme.buttonBorder } : null,
-              ]}
-              onPress={exportCsv}
-            >
-              <Text style={[styles.primaryButtonText, theme ? { color: theme.text } : null]}>Export CSV</Text>
-            </Pressable>
-            <Pressable
-              style={styles.dangerButton}
-              onPress={() =>
-                Alert.alert('Delete profile?', 'This cannot be undone.', [
-                  { text: 'Cancel', style: 'cancel' },
-                  { text: 'Delete', style: 'destructive', onPress: deleteProfile },
-                ])
-              }
-            >
-              <Text style={styles.dangerButtonText}>Delete Profile</Text>
-            </Pressable>
-          </>
-        ) : (
-          <>
-            <Pressable
-              style={[
-                styles.primaryButton,
-                theme ? { backgroundColor: theme.buttonBg, borderColor: theme.buttonBorder } : null,
-              ]}
-              onPress={() => router.push('/auth/login')}
-            >
-              <Text style={[styles.primaryButtonText, theme ? { color: theme.text } : null]}>Login</Text>
-            </Pressable>
-            <Pressable
-              style={[
-                styles.primaryButton,
-                theme ? { backgroundColor: theme.buttonBg, borderColor: theme.buttonBorder } : null,
-              ]}
-              onPress={() => router.push('/auth/register')}
-            >
-              <Text style={[styles.primaryButtonText, theme ? { color: theme.text } : null]}>Register</Text>
-            </Pressable>
-          </>
-        )}
+          )}
+        </ScrollView>
       </View>
     </View>
   );
@@ -543,14 +575,34 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    marginBottom: 12,
+    marginBottom: 10,
     color: '#f8fafc',
     fontWeight: '600',
+  },
+  scrollContent: {
+    paddingBottom: 120,
+    gap: 10,
+  },
+  section: {
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 12,
+    padding: 12,
+  },
+  sectionTitle: {
+    color: '#f8fafc',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 6,
   },
   meta: {
     color: '#e2e8f0',
     marginBottom: 6,
     fontSize: 15,
+  },
+  sectionMeta: {
+    marginBottom: 2,
   },
   timeWrap: {
     marginTop: 4,
@@ -606,6 +658,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     marginTop: 10,
+  },
+  sectionButton: {
+    alignSelf: 'stretch',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   primaryButtonText: {
     color: '#f8fafc',

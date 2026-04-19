@@ -42,7 +42,9 @@ const trendLabel = (total: number) => {
 export default function OverallViewNew({ habits, logs, streaks }: OverallViewNewProps) {
   const context = useContext(HabitContext);
   const theme = context?.theme;
+  const categories = context?.categories ?? [];
   const currentMonth = monthKey();
+  const colorForHabit = (categoryId: number) => categories.find((item) => item.id === categoryId)?.color ?? '#94a3b8';
 
   const monthlyTotal = (habitId: number) => {
     let total = 0;
@@ -64,7 +66,10 @@ export default function OverallViewNew({ habits, logs, streaks }: OverallViewNew
             key={habit.id}
             style={[styles.card, theme ? { backgroundColor: theme.panel, borderColor: theme.border } : null]}
           >
-            <Text style={[styles.name, theme ? { color: theme.text } : null]}>{habit.name}</Text>
+            <View style={styles.nameRow}>
+              <View style={[styles.dot, { backgroundColor: colorForHabit(habit.categoryId) }]} />
+              <Text style={[styles.name, theme ? { color: theme.text } : null]}>{habit.name}</Text>
+            </View>
             <Text style={[styles.meta, theme ? { color: theme.textMuted } : null]}>
               Overall trend: {trendLabel(total)}
             </Text>
@@ -96,6 +101,16 @@ const styles = StyleSheet.create({
     color: '#f8fafc',
     fontSize: 17,
     fontWeight: '600',
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  dot: {
+    width: 10,
+    height: 10,
+    borderRadius: 999,
+    marginRight: 10,
   },
   meta: {
     color: '#cbd5e1',

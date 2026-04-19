@@ -10,6 +10,7 @@ export const studentsTable = sqliteTable('students', {
 
 export const categoriesTable = sqliteTable('categories', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').notNull().default(0),
   name: text('name').notNull(),
   color: text('color').notNull(),
   icon: text('icon').notNull(),
@@ -17,6 +18,7 @@ export const categoriesTable = sqliteTable('categories', {
 
 export const habitsTable = sqliteTable('habits', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').notNull().default(0),
   name: text('name').notNull(),
   categoryId: integer('category_id').notNull(),
   metricType: text('metric_type').notNull().default('count'),
@@ -25,6 +27,7 @@ export const habitsTable = sqliteTable('habits', {
 
 export const habitLogsTable = sqliteTable('habit_logs', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').notNull().default(0),
   habitId: integer('habit_id').notNull(),
   categoryId: integer('category_id').notNull(),
   logDate: text('log_date').notNull(),
@@ -34,6 +37,7 @@ export const habitLogsTable = sqliteTable('habit_logs', {
 
 export const targetsTable = sqliteTable('targets', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').notNull().default(0),
   periodType: text('period_type').notNull(), // weekly | monthly
   targetValue: integer('target_value').notNull(),
   categoryId: integer('category_id'),

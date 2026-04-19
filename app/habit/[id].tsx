@@ -15,6 +15,7 @@ export default function HabitDetail() {
   const router = useRouter();
   const context = useContext(HabitContext);
   const theme = context?.theme;
+  const userId = context?.user?.id ?? 0;
   const habits = context?.habits ?? [];
   const categories = context?.categories;
   const habit = habits.find((h: Habit) => h.id === Number(id));
@@ -36,7 +37,7 @@ export default function HabitDetail() {
     const existingToday = await db
       .select()
       .from(habitLogsTable)
-      .where(and(eq(habitLogsTable.habitId, habit.id), eq(habitLogsTable.logDate, todayIso())));
+      .where(and(eq(habitLogsTable.userId, userId), eq(habitLogsTable.habitId, habit.id), eq(habitLogsTable.logDate, todayIso())));
 
     if (existingToday.length > 0) {
       await db
@@ -47,6 +48,7 @@ export default function HabitDetail() {
     }
 
     await db.insert(habitLogsTable).values({
+      userId,
       habitId: habit.id,
       categoryId: habit.categoryId,
       logDate: todayIso(),
@@ -56,10 +58,10 @@ export default function HabitDetail() {
   };
 
   const deleteHabit = async () => {
-    await db.delete(habitLogsTable).where(eq(habitLogsTable.habitId, habit.id));
-    await db.delete(targetsTable).where(eq(targetsTable.habitId, habit.id));
-    await db.delete(habitsTable).where(eq(habitsTable.id, habit.id));
-    const rows = await db.select().from(habitsTable);
+    await db.delete(habitLogsTable).where(and(eq(habitLogsTable.userId, userId), eq(habitLogsTable.habitId, habit.id)));
+    await db.delete(targetsTable).where(and(eq(targetsTable.userId, userId), eq(targetsTable.habitId, habit.id)));
+    await db.delete(habitsTable).where(and(eq(habitsTable.userId, userId), eq(habitsTable.id, habit.id)));
+    const rows = await db.select().from(habitsTable).where(eq(habitsTable.userId, userId));
     context.setHabits(rows);
     router.back();
   };

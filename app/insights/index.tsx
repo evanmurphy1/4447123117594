@@ -1,5 +1,5 @@
 // 12/04/26: Shows insights with simple chart.
-import { desc, gte } from 'drizzle-orm';
+import { and, desc, eq, gte } from 'drizzle-orm';
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -71,6 +71,7 @@ export default function InsightsIndex() {
   const context = useContext(HabitContext);
   const theme = context?.theme;
   const isLightMode = context?.themeMode === 'light';
+  const userId = context?.user?.id ?? 0;
   const [logs, setLogs] = useState<HabitLogRow[]>([]);
   const [mode, setMode] = useState<InsightMode>('daily');
 
@@ -84,12 +85,12 @@ export default function InsightsIndex() {
       const rows = await db
         .select()
         .from(habitLogsTable)
-        .where(gte(habitLogsTable.logDate, start))
+        .where(and(eq(habitLogsTable.userId, userId), gte(habitLogsTable.logDate, start)))
         .orderBy(desc(habitLogsTable.logDate));
       setLogs(rows as HabitLogRow[]);
     };
     load();
-  }, []);
+  }, [userId]);
 
   // 16/04/26: Aggregates chart by mode.
   const chartData = useMemo(() => {
@@ -224,14 +225,16 @@ export default function InsightsIndex() {
         <View style={[styles.chartRow, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}>
           {chartData.map((item) => (
             <View key={item.key} style={styles.chartItem}>
-              <View
-                style={{
-                  width: '100%',
-                  height: Math.max(6, (item.total / max) * 140),
-                  backgroundColor: isLightMode ? 'rgba(37, 99, 235, 0.75)' : theme ? theme.buttonBg : 'rgba(255,255,255,0.22)',
-                  borderRadius: 8,
-                }}
-              />
+              <View style={styles.barArea}>
+                <View
+                  style={{
+                    width: '100%',
+                    height: Math.max(6, (item.total / max) * 96),
+                    backgroundColor: isLightMode ? 'rgba(37, 99, 235, 0.75)' : 'rgba(59, 130, 246, 0.9)',
+                    borderRadius: 8,
+                  }}
+                />
+              </View>
               <Text style={[styles.chartLabel, theme ? { color: theme.textMuted } : null]}>{item.label}</Text>
               <Text style={[styles.chartValue, theme ? { color: theme.text } : null]}>{item.total}</Text>
             </View>
@@ -315,11 +318,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end',
     gap: 8,
-    height: 180,
+    minHeight: 190,
+    overflow: 'hidden',
   },
   chartItem: {
     alignItems: 'center',
     flex: 1,
+  },
+  barArea: {
+    height: 102,
+    width: '100%',
+    justifyContent: 'flex-end',
   },
   chartLabel: {
     fontSize: 10,

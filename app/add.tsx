@@ -1,4 +1,5 @@
 // 14/04/26: Guided habit form.
+import { eq } from 'drizzle-orm';
 import { useRouter } from 'expo-router';
 import { useContext, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -22,6 +23,8 @@ export default function AddHabit() {
 
   const saveHabit = async () => {
     if (!context) return;
+    const userId = context.user?.id;
+    if (!userId) return;
     const trimmedName = name.trim();
     const chosenCategoryId = selectedCategoryId ?? categories[0]?.id;
     const nextNameError = trimmedName ? '' : 'Habit name is required.';
@@ -34,13 +37,14 @@ export default function AddHabit() {
     }
 
     await db.insert(habitsTable).values({
+      userId,
       name: trimmedName,
       metricType: 'count',
       notes: notes.trim() || null,
       categoryId: chosenCategoryId,
     });
 
-    const rows = await db.select().from(habitsTable);
+    const rows = await db.select().from(habitsTable).where(eq(habitsTable.userId, userId));
     context.setHabits(rows);
     router.back();
   };
@@ -82,13 +86,18 @@ export default function AddHabit() {
               <Pressable
                 key={category.id}
                 onPress={() => setSelectedCategoryId(category.id)}
-                style={{
-                  ...styles.chip,
-                  borderColor: active ? theme?.buttonBorder ?? 'rgba(255,255,255,0.34)' : theme?.border ?? 'rgba(255,255,255,0.22)',
-                  backgroundColor: active ? theme?.buttonBg ?? 'rgba(255,255,255,0.2)' : theme?.panel ?? 'rgba(255,255,255,0.1)',
-                }}
+                style={[
+                  styles.chip,
+                  {
+                    borderColor: active ? theme?.buttonBorder ?? 'rgba(255,255,255,0.34)' : theme?.border ?? 'rgba(255,255,255,0.22)',
+                    backgroundColor: active ? theme?.buttonBg ?? 'rgba(255,255,255,0.2)' : theme?.panel ?? 'rgba(255,255,255,0.1)',
+                  },
+                  active ? styles.chipActive : null,
+                ]}
               >
-                <Text style={[styles.chipText, theme ? { color: theme.text } : null]}>{category.name}</Text>
+                <Text style={[styles.chipText, theme ? { color: theme.text } : null]}>
+                  {active ? `✓ ${category.name}` : category.name}
+                </Text>
               </Pressable>
             );
           })}
@@ -167,6 +176,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
+  },
+  chipActive: {
+    borderWidth: 2,
   },
   chipText: {
     color: '#f8fafc',

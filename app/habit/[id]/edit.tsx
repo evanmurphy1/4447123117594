@@ -1,5 +1,5 @@
 // 08/04/26 Habit edit page created for updating habit details.
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useContext, useState } from 'react';
 import { Button, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
@@ -13,6 +13,7 @@ export default function EditHabit() {
   const router = useRouter();
   const context = useContext(HabitContext);
   const theme = context?.theme;
+  const userId = context?.user?.id ?? 0;
   const habits = context?.habits ?? [];
   const categories = context?.categories ?? [];
   const habit = habits.find((h: Habit) => h.id === Number(id));
@@ -29,10 +30,10 @@ export default function EditHabit() {
 
     await db
       .update(habitsTable)
-      .set({ name: trimmedName, metricType: 'count', notes: notes.trim() || null, categoryId })
-      .where(eq(habitsTable.id, Number(id)));
+      .set({ name: trimmedName, metricType: 'count', notes: notes.trim() || null, categoryId, userId })
+      .where(and(eq(habitsTable.id, Number(id)), eq(habitsTable.userId, userId)));
 
-    const rows = await db.select().from(habitsTable);
+    const rows = await db.select().from(habitsTable).where(eq(habitsTable.userId, userId));
     context.setHabits(rows);
     router.back();
   };
@@ -62,13 +63,18 @@ export default function EditHabit() {
             <Pressable
               key={category.id}
               onPress={() => setCategoryId(category.id)}
-              style={{
-                ...styles.chip,
-                borderColor: active ? theme?.buttonBorder ?? category.color : theme?.border ?? '#d1d5db',
-                backgroundColor: active ? theme?.buttonBg ?? '#f3f4f6' : theme?.panel ?? 'transparent',
-              }}
+              style={[
+                styles.chip,
+                {
+                  borderColor: active ? theme?.buttonBorder ?? category.color : theme?.border ?? '#d1d5db',
+                  backgroundColor: active ? theme?.buttonBg ?? '#f3f4f6' : theme?.panel ?? 'transparent',
+                },
+                active ? styles.chipActive : null,
+              ]}
             >
-              <Text style={[styles.chipText, theme ? { color: theme.text } : null]}>{category.name}</Text>
+              <Text style={[styles.chipText, theme ? { color: theme.text } : null]}>
+                {active ? `✓ ${category.name}` : category.name}
+              </Text>
             </Pressable>
           );
         })}
@@ -131,6 +137,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
+  },
+  chipActive: {
+    borderWidth: 2,
   },
   chipText: {
     color: '#e5e7eb',

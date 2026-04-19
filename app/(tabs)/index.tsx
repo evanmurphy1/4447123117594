@@ -1,15 +1,16 @@
 //08/04/26 changed for habits
 import { useFocusEffect } from '@react-navigation/native';
 import { and, eq } from 'drizzle-orm';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCallback, useContext, useEffect, useState } from 'react';
+import { Image } from 'expo-image';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import HabitCard from '@/components/HabitCard';
 import EmptyViewNew from '@/components/ui-import/EmptyViewNew';
 import HabitTabsNew from '@/components/ui-import/HabitTabsNew';
-import HomeHeaderNew from '@/components/ui-import/HomeHeaderNew';
 import MonthlyViewNew from '@/components/ui-import/MonthlyViewNew';
 import OverallViewNew from '@/components/ui-import/OverallViewNew';
 import TodayViewNew from '@/components/ui-import/TodayViewNew';
@@ -71,8 +72,9 @@ export default function IndexScreen() {
   const [quoteError, setQuoteError] = useState<string>('');
   // 09/04/26: Reads habits safely before context guard.
   const habits = context?.habits ?? EMPTY_HABITS;
-  const user = context?.user ?? null;
+  const userId = context?.user?.id ?? 0;
   const theme = context?.theme;
+  const themeMode = context?.themeMode ?? 'dark';
   // 09/04/26: Keeps today list until other views added.
   const visibleHabits = habits;
   // 09/04/26: Shows empty state when no habits.
@@ -80,7 +82,7 @@ export default function IndexScreen() {
 
   // 16/04/26: Load logs from db.
   const loadLogs = useCallback(async () => {
-    const rows = await db.select().from(habitLogsTable);
+    const rows = await db.select().from(habitLogsTable).where(eq(habitLogsTable.userId, userId));
     const logRows = rows as HabitLogRow[];
     setLogs(logRows);
     const todayHabitIds = logRows.filter((row) => row.logDate === todayIso()).map((row) => row.habitId);
@@ -108,7 +110,7 @@ export default function IndexScreen() {
       nextStreaks[habit.id] = streak;
     });
     setStreaks(nextStreaks);
-  }, [habits]);
+  }, [habits, userId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -140,17 +142,18 @@ export default function IndexScreen() {
     const rows = await db
       .select()
       .from(habitLogsTable)
-      .where(and(eq(habitLogsTable.habitId, habit.id), eq(habitLogsTable.logDate, todayIso())));
+      .where(and(eq(habitLogsTable.userId, userId), eq(habitLogsTable.habitId, habit.id), eq(habitLogsTable.logDate, todayIso())));
 
     if (rows.length > 0) {
       await db
         .delete(habitLogsTable)
-        .where(and(eq(habitLogsTable.habitId, habit.id), eq(habitLogsTable.logDate, todayIso())));
+        .where(and(eq(habitLogsTable.userId, userId), eq(habitLogsTable.habitId, habit.id), eq(habitLogsTable.logDate, todayIso())));
       await loadLogs();
       return;
     }
 
     await db.insert(habitLogsTable).values({
+      userId,
       habitId: habit.id,
       categoryId: habit.categoryId,
       logDate: todayIso(),
@@ -167,8 +170,18 @@ export default function IndexScreen() {
       <View style={[styles.bgWash, theme ? { backgroundColor: theme.wash } : null]} />
       <View style={[styles.bgStripe, theme ? { backgroundColor: theme.stripe } : null]} />
       <SafeAreaView style={styles.container}>
-        <HomeHeaderNew onAddPress={() => router.push({ pathname: '../add' })} />
-        <View style={[styles.quoteCard, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}>
+        <Pressable
+          style={[styles.accountIconButton, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}
+          onPress={() => router.push('/account')}
+        >
+          <Ionicons name="settings-outline" size={18} color={theme?.text ?? '#e5e7eb'} />
+        </Pressable>
+        {/* 18/04/26: Main page logo image. */}
+        <View style={styles.logoWrap} pointerEvents="none">
+          <Image source={require('@/assets/images/habitrack-logo.png')} style={styles.logo} contentFit="contain" />
+        </View>
+        <View style={styles.headerOffset} />
+        <View style={[styles.quoteCard, theme ? { borderColor: theme.border } : null]}>
         {quoteLoading ? (
             <Text style={[styles.quoteMeta, theme ? { color: theme.textMuted } : null]}>Loading quote...</Text>
         ) : quoteError ? (
@@ -180,63 +193,42 @@ export default function IndexScreen() {
           </>
         ) : (
           <>
-              <Text style={[styles.quoteText, theme ? { color: theme.text } : null]}>{`\u201C${quote}\u201D`}</Text>
-              <Text style={[styles.quoteMeta, theme ? { color: theme.textMuted } : null]}>- {quoteAuthor}</Text>
+              <Text style={[styles.quoteText, themeMode === 'light' ? { color: '#ffffff' } : theme ? { color: theme.text } : null]}>{`\u201C${quote}\u201D`}</Text>
+              <Text style={[styles.quoteMeta, themeMode === 'light' ? { color: '#ffffff' } : theme ? { color: theme.textMuted } : null]}>- {quoteAuthor}</Text>
             <Pressable style={styles.linkButton} onPress={loadQuote}>
-                <Text style={[styles.linkButtonText, theme ? { color: theme.text } : null]}>New Quote</Text>
+                <Text style={[styles.linkButtonText, themeMode === 'light' ? { color: '#ffffff' } : theme ? { color: theme.text } : null]}>New Quote</Text>
             </Pressable>
           </>
         )}
         </View>
 
-        <View style={styles.navRow}>
-          <Pressable
-            style={[styles.navLink, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}
-            onPress={() => router.push('/categories')}
-          >
-            <Text style={[styles.navText, theme ? { color: theme.text } : null]}>Categories</Text>
-        </Pressable>
-          <Pressable
-            style={[styles.navLink, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}
-            onPress={() => router.push('/logs')}
-          >
-            <Text style={[styles.navText, theme ? { color: theme.text } : null]}>Logs</Text>
-        </Pressable>
-          <Pressable
-            style={[styles.navLink, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}
-            onPress={() => router.push('/targets')}
-          >
-            <Text style={[styles.navText, theme ? { color: theme.text } : null]}>Targets</Text>
-        </Pressable>
-          <Pressable
-            style={[styles.navLink, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}
-            onPress={() => router.push('/insights')}
-          >
-            <Text style={[styles.navText, theme ? { color: theme.text } : null]}>Insights</Text>
-        </Pressable>
-        {user ? (
+        <View style={[styles.navPanel, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}>
+          <View style={styles.navRow}>
             <Pressable
-              style={[styles.navLink, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}
-              onPress={() => router.push('/account')}
+              style={styles.navLink}
+              onPress={() => router.push('/categories')}
             >
-              <Text style={[styles.navText, theme ? { color: theme.text } : null]}>Account</Text>
+              <Text numberOfLines={1} style={[styles.navText, theme ? { color: theme.text } : null]}>Category</Text>
           </Pressable>
-        ) : (
-          <>
-              <Pressable
-                style={[styles.navLink, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}
-                onPress={() => router.push('/auth/login')}
-              >
-                <Text style={[styles.navText, theme ? { color: theme.text } : null]}>Login</Text>
-            </Pressable>
-              <Pressable
-                style={[styles.navLink, theme ? { borderColor: theme.border, backgroundColor: theme.panel } : null]}
-                onPress={() => router.push('/auth/register')}
-              >
-                <Text style={[styles.navText, theme ? { color: theme.text } : null]}>Register</Text>
-            </Pressable>
-          </>
-        )}
+            <Pressable
+              style={styles.navLink}
+              onPress={() => router.push('/logs')}
+            >
+              <Text numberOfLines={1} style={[styles.navText, theme ? { color: theme.text } : null]}>Logs</Text>
+          </Pressable>
+            <Pressable
+              style={styles.navLink}
+              onPress={() => router.push('/targets')}
+            >
+              <Text numberOfLines={1} style={[styles.navText, theme ? { color: theme.text } : null]}>Targets</Text>
+          </Pressable>
+            <Pressable
+              style={styles.navLink}
+              onPress={() => router.push('/insights')}
+            >
+              <Text numberOfLines={1} style={[styles.navText, theme ? { color: theme.text } : null]}>Insights</Text>
+          </Pressable>
+          </View>
         </View>
         <HabitTabsNew filters={FILTERS} activeTab={activeTab} onChange={(tab) => setActiveTab(tab)} />
 
@@ -290,6 +282,35 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     padding: 20,
   },
+  logoWrap: {
+    position: 'absolute',
+    top: -8,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 0,
+  },
+  accountIconButton: {
+    position: 'absolute',
+    top: 74,
+    left: 20,
+    height: 38,
+    width: 38,
+    borderWidth: 1,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 2,
+  },
+  logo: {
+    width: '125%',
+    maxWidth: 760,
+    height: 210,
+  },
+  headerOffset: {
+    marginTop: 12,
+    height: 48,
+  },
   bgWash: {
     position: 'absolute',
     top: 0,
@@ -307,23 +328,34 @@ const styles = StyleSheet.create({
     right: -150,
     transform: [{ rotate: '-18deg' }],
   },
-  navRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
+  navPanel: {
+    width: '100%',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.24)',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 14,
+    padding: 10,
     marginBottom: 12,
   },
+  navRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 8,
+  },
   navLink: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderColor: 'rgba(255,255,255,0.22)',
+    flex: 1,
+    backgroundColor: '#1d7ff2',
+    borderColor: '#2e9bff',
     borderWidth: 1,
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 9,
+    alignItems: 'center',
   },
   navText: {
     color: '#e5e7eb',
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
   },
   primaryButton: {
@@ -344,7 +376,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.22)',
     borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: '#112745',
     padding: 12,
     marginBottom: 12,
     gap: 6,

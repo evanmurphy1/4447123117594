@@ -1,5 +1,5 @@
 // 11/04/26: Edits existing target configuration.
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useContext, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
@@ -23,6 +23,7 @@ export default function EditTarget() {
   const router = useRouter();
   const context = useContext(HabitContext);
   const theme = context?.theme;
+  const userId = context?.user?.id ?? 0;
 
   const habits = context?.habits ?? [];
   const [target, setTarget] = useState<TargetRow | null>(null);
@@ -32,7 +33,10 @@ export default function EditTarget() {
 
   useEffect(() => {
     const load = async () => {
-      const rows = await db.select().from(targetsTable).where(eq(targetsTable.id, Number(id)));
+      const rows = await db
+        .select()
+        .from(targetsTable)
+        .where(and(eq(targetsTable.id, Number(id)), eq(targetsTable.userId, userId)));
       const row = rows[0] as TargetRow | undefined;
       if (!row) return;
       setTarget(row);
@@ -41,7 +45,7 @@ export default function EditTarget() {
       setHabitId(row.habitId ?? null);
     };
     load();
-  }, [id]);
+  }, [id, userId]);
 
   if (!target) return null;
 
@@ -51,14 +55,14 @@ export default function EditTarget() {
 
     await db
       .update(targetsTable)
-      .set({ periodType, targetValue: value, habitId })
-      .where(eq(targetsTable.id, Number(id)));
+      .set({ periodType, targetValue: value, habitId, userId })
+      .where(and(eq(targetsTable.id, Number(id)), eq(targetsTable.userId, userId)));
 
     router.back();
   };
 
   const deleteTarget = async () => {
-    await db.delete(targetsTable).where(eq(targetsTable.id, Number(id)));
+    await db.delete(targetsTable).where(and(eq(targetsTable.id, Number(id)), eq(targetsTable.userId, userId)));
     router.back();
   };
 
@@ -84,29 +88,47 @@ export default function EditTarget() {
 
       <Text style={[styles.label, theme ? { color: theme.textMuted } : null]}>Habit (optional)</Text>
       <View style={styles.chipRow}>
+        {(() => {
+          const active = habitId === null;
+          return (
         <Pressable
           onPress={() => setHabitId(null)}
-          style={{
-            ...styles.chip,
-            borderColor: habitId === null ? theme?.buttonBorder ?? '#4b5563' : theme?.border ?? '#3f3f46',
-            backgroundColor: habitId === null ? theme?.buttonBg ?? '#2f2f2f' : theme?.panel ?? '#1f1f1f',
-          }}
+          style={[
+            styles.chip,
+            {
+              borderColor: active ? theme?.buttonBorder ?? '#4b5563' : theme?.border ?? '#3f3f46',
+              backgroundColor: active ? theme?.buttonBg ?? '#2f2f2f' : theme?.panel ?? '#1f1f1f',
+            },
+            active ? styles.chipActive : null,
+          ]}
         >
-          <Text style={[styles.chipText, theme ? { color: theme.text } : null]}>All Habits</Text>
+          <Text style={[styles.chipText, theme ? { color: theme.text } : null]}>
+            {active ? '✓ All Habits' : 'All Habits'}
+          </Text>
         </Pressable>
-        {habits.map((habit: Habit) => (
+          );
+        })()}
+        {habits.map((habit: Habit) => {
+          const active = habitId === habit.id;
+          return (
           <Pressable
             key={habit.id}
             onPress={() => setHabitId(habit.id)}
-            style={{
-              ...styles.chip,
-              borderColor: habitId === habit.id ? theme?.buttonBorder ?? '#4b5563' : theme?.border ?? '#3f3f46',
-              backgroundColor: habitId === habit.id ? theme?.buttonBg ?? '#2f2f2f' : theme?.panel ?? '#1f1f1f',
-            }}
+            style={[
+              styles.chip,
+              {
+                borderColor: active ? theme?.buttonBorder ?? '#4b5563' : theme?.border ?? '#3f3f46',
+                backgroundColor: active ? theme?.buttonBg ?? '#2f2f2f' : theme?.panel ?? '#1f1f1f',
+              },
+              active ? styles.chipActive : null,
+            ]}
           >
-            <Text style={[styles.chipText, theme ? { color: theme.text } : null]}>{habit.name}</Text>
+            <Text style={[styles.chipText, theme ? { color: theme.text } : null]}>
+              {active ? `✓ ${habit.name}` : habit.name}
+            </Text>
           </Pressable>
-        ))}
+          );
+        })}
       </View>
 
       <TextInput
@@ -165,6 +187,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
+  },
+  chipActive: {
+    borderWidth: 2,
   },
   chipText: {
     color: '#e5e7eb',

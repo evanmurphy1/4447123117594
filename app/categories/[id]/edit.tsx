@@ -1,5 +1,5 @@
 // 11/04/26: Edits category details and deletes.
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useContext, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
@@ -8,12 +8,16 @@ import { db } from '@/db/client';
 import { categoriesTable, habitsTable, habitLogsTable } from '@/db/schema';
 import { Category, HabitContext } from '../../_layout';
 
+// 18/04/26: Category color options.
+const COLOR_OPTIONS = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#a855f7', '#06b6d4', '#eab308', '#14b8a6'];
+
 // 11/04/26: Renders edit category screen.
 export default function EditCategory() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const context = useContext(HabitContext);
   const theme = context?.theme;
+  const userId = context?.user?.id ?? 0;
 
   const categories = context?.categories ?? [];
   const category = categories.find((c: Category) => c.id === Number(id));
@@ -30,18 +34,18 @@ export default function EditCategory() {
     await db
       .update(categoriesTable)
       .set({ name: trimmed, color: color.trim() || category.color })
-      .where(eq(categoriesTable.id, Number(id)));
+      .where(and(eq(categoriesTable.id, Number(id)), eq(categoriesTable.userId, userId)));
 
-    const rows = await db.select().from(categoriesTable);
+    const rows = await db.select().from(categoriesTable).where(eq(categoriesTable.userId, userId));
     context?.setCategories(rows);
     router.back();
   };
 
   const deleteCategory = async () => {
-    await db.delete(habitLogsTable).where(eq(habitLogsTable.categoryId, category.id));
-    await db.delete(habitsTable).where(eq(habitsTable.categoryId, category.id));
-    await db.delete(categoriesTable).where(eq(categoriesTable.id, category.id));
-    const rows = await db.select().from(categoriesTable);
+    await db.delete(habitLogsTable).where(and(eq(habitLogsTable.categoryId, category.id), eq(habitLogsTable.userId, userId)));
+    await db.delete(habitsTable).where(and(eq(habitsTable.categoryId, category.id), eq(habitsTable.userId, userId)));
+    await db.delete(categoriesTable).where(and(eq(categoriesTable.id, category.id), eq(categoriesTable.userId, userId)));
+    const rows = await db.select().from(categoriesTable).where(eq(categoriesTable.userId, userId));
     context?.setCategories(rows);
     router.back();
   };
@@ -62,13 +66,24 @@ export default function EditCategory() {
         placeholder="Name"
         placeholderTextColor={theme ? theme.textMuted : '#6b7280'}
       />
-      <TextInput
-        style={[styles.input, theme ? { borderColor: theme.border, backgroundColor: theme.panel, color: theme.text } : null]}
-        value={color}
-        onChangeText={setColor}
-        placeholder="Color (hex)"
-        placeholderTextColor={theme ? theme.textMuted : '#6b7280'}
-      />
+      <Text style={[styles.label, theme ? { color: theme.textMuted } : null]}>Color</Text>
+      <View style={styles.colorRow}>
+        {COLOR_OPTIONS.map((option) => {
+          const active = color === option;
+          return (
+            <Pressable
+              key={option}
+              onPress={() => setColor(option)}
+              style={[
+                styles.colorChip,
+                { backgroundColor: option },
+                active ? styles.colorChipActive : null,
+                theme && active ? { borderColor: theme.text } : null,
+              ]}
+            />
+          );
+        })}
+      </View>
       {/* 13/04/26: Consistent dark primary action. */}
       <Pressable
         style={[styles.primaryButton, theme ? { backgroundColor: theme.buttonBg, borderColor: theme.buttonBorder } : null]}
@@ -106,6 +121,27 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 10,
     marginBottom: 10,
+  },
+  label: {
+    color: '#9ca3af',
+    marginBottom: 8,
+    fontWeight: '600',
+  },
+  colorRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 10,
+  },
+  colorChip: {
+    width: 32,
+    height: 32,
+    borderRadius: 999,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  colorChipActive: {
+    borderColor: '#e5e7eb',
   },
   primaryButton: {
     alignSelf: 'flex-start',

@@ -1,11 +1,15 @@
 // 11/04/26: Adds new category with fields.
 import { useRouter } from 'expo-router';
 import { useContext, useState } from 'react';
+import { eq } from 'drizzle-orm';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { db } from '@/db/client';
 import { categoriesTable } from '@/db/schema';
 import { HabitContext } from '../_layout';
+
+// 18/04/26: Category color options.
+const COLOR_OPTIONS = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#a855f7', '#06b6d4', '#eab308', '#14b8a6'];
 
 // 11/04/26: Renders add category form.
 export default function AddCategory() {
@@ -17,16 +21,19 @@ export default function AddCategory() {
   const [color, setColor] = useState('#22c55e');
 
   const saveCategory = async () => {
+    const userId = context?.user?.id;
+    if (!userId) return;
     const trimmed = name.trim();
     if (!trimmed) return;
 
     await db.insert(categoriesTable).values({
+      userId,
       name: trimmed,
       color: color.trim() || '#22c55e',
       icon: 'tag',
     });
 
-    const rows = await db.select().from(categoriesTable);
+    const rows = await db.select().from(categoriesTable).where(eq(categoriesTable.userId, userId));
     context?.setCategories(rows);
     router.back();
   };
@@ -57,16 +64,24 @@ export default function AddCategory() {
           value={name}
           onChangeText={setName}
         />
-        <TextInput
-          style={[
-            styles.input,
-            theme ? { borderColor: theme.border, backgroundColor: theme.panel, color: theme.text } : null,
-          ]}
-          placeholder="Color (hex)"
-          placeholderTextColor={theme ? theme.textMuted : '#cbd5e1'}
-          value={color}
-          onChangeText={setColor}
-        />
+        <Text style={[styles.label, theme ? { color: theme.textMuted } : null]}>Color</Text>
+        <View style={styles.colorRow}>
+          {COLOR_OPTIONS.map((option) => {
+            const active = color === option;
+            return (
+              <Pressable
+                key={option}
+                onPress={() => setColor(option)}
+                style={[
+                  styles.colorChip,
+                  { backgroundColor: option },
+                  active ? styles.colorChipActive : null,
+                  theme && active ? { borderColor: theme.text } : null,
+                ]}
+              />
+            );
+          })}
+        </View>
         {/* 13/04/26: Consistent dark primary action. */}
         <Pressable
           style={[
@@ -126,6 +141,27 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 10,
     marginBottom: 10,
+  },
+  label: {
+    color: '#cbd5e1',
+    marginBottom: 8,
+    fontWeight: '600',
+  },
+  colorRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 10,
+  },
+  colorChip: {
+    width: 32,
+    height: 32,
+    borderRadius: 999,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  colorChipActive: {
+    borderColor: '#f8fafc',
   },
   primaryButton: {
     alignSelf: 'flex-start',

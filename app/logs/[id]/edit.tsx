@@ -1,5 +1,5 @@
 // 11/04/26: Edits habit log entry fields.
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useContext, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
@@ -55,6 +55,7 @@ export default function EditLog() {
   const router = useRouter();
   const context = useContext(HabitContext);
   const theme = context?.theme;
+  const userId = context?.user?.id ?? 0;
 
   const habits = context?.habits ?? [];
   const [log, setLog] = useState<HabitLogRow | null>(null);
@@ -65,7 +66,10 @@ export default function EditLog() {
 
   useEffect(() => {
     const load = async () => {
-      const rows = await db.select().from(habitLogsTable).where(eq(habitLogsTable.id, Number(id)));
+      const rows = await db
+        .select()
+        .from(habitLogsTable)
+        .where(and(eq(habitLogsTable.id, Number(id)), eq(habitLogsTable.userId, userId)));
       const row = rows[0] as HabitLogRow | undefined;
       if (!row) return;
       setLog(row);
@@ -75,7 +79,7 @@ export default function EditLog() {
       setNotes(row.notes ?? '');
     };
     load();
-  }, [id]);
+  }, [id, userId]);
 
   // 11/04/26: Derives category from selected habit.
   const categoryId =
@@ -91,18 +95,19 @@ export default function EditLog() {
       .update(habitLogsTable)
       .set({
         habitId,
+        userId,
         categoryId,
         logDate: logDate.trim(),
         metricValue: value,
         notes: notes.trim() || null,
       })
-      .where(eq(habitLogsTable.id, Number(id)));
+      .where(and(eq(habitLogsTable.id, Number(id)), eq(habitLogsTable.userId, userId)));
 
     router.back();
   };
 
   const deleteLog = async () => {
-    await db.delete(habitLogsTable).where(eq(habitLogsTable.id, Number(id)));
+    await db.delete(habitLogsTable).where(and(eq(habitLogsTable.id, Number(id)), eq(habitLogsTable.userId, userId)));
     router.back();
   };
 
@@ -118,19 +123,27 @@ export default function EditLog() {
 
       <Text style={[styles.label, theme ? { color: theme.textMuted } : null]}>Habit</Text>
       <View style={styles.chipRow}>
-        {habits.map((habit) => (
-          <Pressable
-            key={habit.id}
-            onPress={() => setHabitId(habit.id)}
-            style={{
-              ...styles.chip,
-              borderColor: habitId === habit.id ? theme?.buttonBorder ?? '#4b5563' : theme?.border ?? '#3f3f46',
-              backgroundColor: habitId === habit.id ? theme?.buttonBg ?? '#2f2f2f' : theme?.panel ?? '#1f1f1f',
-            }}
-          >
-            <Text style={[styles.chipText, theme ? { color: theme.text } : null]}>{habit.name}</Text>
-          </Pressable>
-        ))}
+        {habits.map((habit) => {
+          const active = habitId === habit.id;
+          return (
+            <Pressable
+              key={habit.id}
+              onPress={() => setHabitId(habit.id)}
+              style={[
+                styles.chip,
+                {
+                  borderColor: active ? theme?.buttonBorder ?? '#4b5563' : theme?.border ?? '#3f3f46',
+                  backgroundColor: active ? theme?.buttonBg ?? '#2f2f2f' : theme?.panel ?? '#1f1f1f',
+                },
+                active ? styles.chipActive : null,
+              ]}
+            >
+              <Text style={[styles.chipText, theme ? { color: theme.text } : null]}>
+                {active ? `✓ ${habit.name}` : habit.name}
+              </Text>
+            </Pressable>
+          );
+        })}
       </View>
 
       <Text style={[styles.label, theme ? { color: theme.textMuted } : null]}>Date</Text>
@@ -210,6 +223,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
+  },
+  chipActive: {
+    borderWidth: 2,
   },
   chipText: {
     color: '#e5e7eb',
